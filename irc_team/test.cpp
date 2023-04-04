@@ -76,7 +76,7 @@ Channel::Channel(int port_) : _port_num(port_) {
     printErrorMsg("socket()");
     exit(1);
   }
-  memset(&_server_addr, 0, sizeof(_server_sock));
+  memset(&_server_addr, 0, sizeof(_server_addr));
   _server_addr.sin_family = AF_INET;
   _server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
   _server_addr.sin_port = htons(_port_num);
@@ -100,7 +100,8 @@ void Channel::run() {
   std::cout << "run";
 
   if ((_kq = kqueue()) == -1) {
-    std::cerr << "kqueue() error " << std::endl;
+    // std::cerr << "kqueue() error " << std::endl;
+    printErrorMsg("kqueue()");
     // run();
   }
   int evt;
