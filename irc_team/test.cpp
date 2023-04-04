@@ -20,6 +20,7 @@ void printErrorMsg(const char *);
 void initEvent(std::vector<struct kevent> &data, int ident, int filter,
                int flags);
 
+
 class Channel {
 public:
   Channel(int port);
@@ -28,13 +29,14 @@ public:
   void closeAll();
   std::string parsing(std::string&);
 private:
-  int _port_num;
-  struct sockaddr_in _server_addr;
-  int _server_sock;
-  std::vector<int> _client_list;
-  socklen_t _size;
-  std::vector<struct kevent> _event_lists;
-  int _kq;
+  int _port_num; // server
+  struct sockaddr_in _server_addr; // server
+  int _server_sock; // server 
+  std::vector<int> _client_list; //server 
+  socklen_t _size; // server
+  std::vector<struct kevent> _event_lists;  //
+  int _kq;  // handler
+  // Server connect;
   // std::map<int, std::string> _socket_addr;
 };
 
@@ -164,8 +166,7 @@ void Channel::run() {
             } else {
               std::cout << ret << std::endl;
               std::cout << "found cmd" << std::endl;
-          }
-          
+            }
         }
       }
     }
