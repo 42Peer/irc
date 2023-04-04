@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <arpa/inet.h>
 #include <fcntl.h>
-#include <initializer_list>
 #include <iostream>
 #include <map>
 #include <memory.h>
@@ -24,9 +23,10 @@ void initEvent(std::vector<struct kevent> &data, int ident, int filter,
 class Channel {
 public:
   Channel(int port);
+  ~Channel();
   void run();
-  void closeAll(int sig);
-
+  void closeAll();
+  std::string parsing(std::string&);
 private:
   int _port_num;
   struct sockaddr_in _server_addr;
@@ -38,14 +38,33 @@ private:
   // std::map<int, std::string> _socket_addr;
 };
 
+Channel::~Channel() {
+  closeAll();
+}
 Channel c(8080);
 
-void Channel::closeAll(int signo) {
+void Channel::closeAll() {
   for (int i = 0; i < _client_list.size(); ++i) {
     close(_client_list[i]);
   }
   close(_kq);
   close(_server_sock);
+}
+
+std::string Channel::parsing(std::string& str) {
+  std::string cmd;
+  if (str[0] == '/') {
+    int idx = str.find(" ");
+    cmd = str.substr(1, idx);
+    if (cmd == "join")
+    {
+      std::cout << "join user ";
+    }
+    return (str.substr(idx + 1, str.size() - idx + 1));
+  }
+  else {
+    return ("");
+  }
 }
 
 Channel::Channel(int port_) : _port_num(port_) {
@@ -70,7 +89,7 @@ Channel::Channel(int port_) : _port_num(port_) {
   }
 }
 
-void handler(int no) { c.closeAll(no); }
+void handler(int no) { (void)no; c.closeAll(); }
 
 void Channel::run() {
   // int kq;
@@ -96,7 +115,7 @@ void Channel::run() {
       std::vector<int>::iterator iter;
       std::cout << "Flags : " << monitor[i].flags << " " << std::endl;
       if (monitor[i].flags & EV_EOF) {
-        std::cout << "Client Discount" << std::endl;
+        std::cout << "Client : disconnected : " << monitor[i].ident << '\n';
         close(monitor[i].ident);
       }
       if (monitor[i].flags & EV_ERROR) {
@@ -104,7 +123,6 @@ void Channel::run() {
         if (monitor[i].ident == _server_sock)
           printErrorMsg("Server Sock Error");
         else {
-          // std::cout << "Client : disconnected : " << monitor[i].ident <<
           // "\n"; close(monitor[i].ident);
           printErrorMsg("Client Error");
         }
@@ -113,7 +131,6 @@ void Channel::run() {
         if (monitor[i].ident == _server_sock) {
           int clnts;
           clnts = accept(_server_sock, (sockaddr *)&_server_addr, &_size);
-          std::cout << "hello?" << std::endl;
           if (clnts == -1) {
             printErrorMsg("accept()");
           }
@@ -125,15 +142,30 @@ void Channel::run() {
         } else if ((iter = std::find(_client_list.begin(), _client_list.end(),
                                      monitor[i].ident)) != _client_list.end()) {
           std::string ret;
-
+          std::string who_am_i;
           char buf[1024];
           int r;
+          who_am_i = "Client[";
+          who_am_i += std::to_string(monitor[i].ident);
+          who_am_i += "] : ";
           while ((r = read(monitor[i].ident, buf, 1024)) > 0) {
             buf[r] = 0;
             ret += buf;
-            // std::cout << buf;
           }
-          send(monitor[i].ident, ret.c_str(), ret.size(), 1);
+          
+          if ((ret = parsing(ret)) == "") {
+            std::cout << "cannot found cmd"<<std::endl;
+            for (int j = 0; j < _client_list.size(); ++j)
+            {
+             send(_client_list[j], who_am_i.c_str(), who_am_i.size() + 1, 1);
+             send(_client_list[j], ret.c_str(), ret.size(), 1);
+             send(_client_list[j], "\n", 2, 1);
+            }  
+            } else {
+              std::cout << ret << std::endl;
+              std::cout << "found cmd" << std::endl;
+          }
+          
         }
       }
     }
