@@ -3,6 +3,8 @@
 int main() {
     ChannelData channel;
 
-    channel.setUser("hi",0, 0);
-    cout << channel.getAllUser() << std::endl;
+    channel.addData(0, 12, "hi", "bye");
+    channel.addData(1, 12, "hi2", "bye");
+    channel.addData(1, 13, "hi", "good");
+    channel.printTables();
 }

@@ -3,44 +3,74 @@
 
 #include <iostream>
 #include <map>
-#include <vector>
+#include <string>
+#include <utility>
 
 using namespace std;
+
+struct s_user_info {
+    int fd;
+    bool privileges;
+//    std::string nick;
+    std::string name;
+};
+
 
 class ChannelData
 {
 public:
-    std::string getAllUser() {
-        std::string ret;
-
-        for (int i = 0; i < _user_list.size(); ++i) {
-            ret += _user_list[i] + "\n";
-        }
-        return (ret);
+    typedef std::map<std::string, s_user_info>::iterator iter;
+    bool isExist(std::string nick) {
+        if (_tables.find(nick) != _tables.end())
+            return (true);
+        return (false);
     }
 
-    void setUser(std::string username, int fd, bool privilge) {
-        _user_list.push_back(username);
-        _is_super.push_back(privilge);
-        _fd.push_back(fd);
+    bool addData(bool privilege, int fd, std::string nick, std::string name) {
+        if (isExist(nick))
+            return false;
+        struct s_user_info info;
+
+        info.privileges = privilege;
+        info.fd = fd;
+        info.name = name;
+        _tables.insert(std::pair<std::string, struct s_user_info>(nick, info));
+        return true;
+    }
+
+    void printTables() {
+        for (iter it = _tables.begin(); it != _tables.end(); ++it) {
+            if (it->second.privileges == 0)
+                std::cout << "방장";
+            else
+                std::cout << "User";
+            std::cout << "[user name : " << it->second.name << "]";
+            std::cout << "[user nick : " << it->first << "]\n";
+        }
     }
 
 private:
-    vector<string>  _user_list;
-    vector<bool>    _is_super;
-    vector<int>     _fd;
+    std::map<std::string, struct s_user_info> _tables;
 };
-/*          */
 
+/*          */
 class UserData
 {
+public:
 
+private:
 };
 
 class Db
 {
 public:
-    map<std::string, ChannelData> channel_tables;
+    UserData&   getUserTable() {
+        return (user_table);
+    }
+    void addTable() {}
+private:
+    std::map<std::string, ChannelData> channel_tables;
+    UserData user_table;
 };
 
 
