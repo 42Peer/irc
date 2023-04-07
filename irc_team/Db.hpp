@@ -11,7 +11,7 @@ using namespace std;
 struct s_user_info {
     int fd;
     bool privileges;
-//    std::string nick;
+    std::string nick;
     std::string name;
 };
 
@@ -34,6 +34,7 @@ public:
         info.privileges = privilege;
         info.fd = fd;
         info.name = name;
+        info.nick = nick;
         _tables.insert(std::pair<std::string, struct s_user_info>(nick, info));
         return true;
     }
@@ -45,7 +46,7 @@ public:
             else
                 std::cout << "User";
             std::cout << "[user name : " << it->second.name << "]";
-            std::cout << "[user nick : " << it->first << "]\n";
+            std::cout << "[user nick : " << it->second.nick << "]\n";
         }
     }
 
@@ -64,10 +65,34 @@ private:
 class Db
 {
 public:
+    typedef std::map<std::string, ChannelData>::iterator iter;
+    ChannelData& getCorrectChannel(std::string channelName) {
+        if (channel_tables.find(channelName) == channel_tables.end()) {
+            this->addChannel(channelName);
+        }
+        return (channel_tables[channelName]);
+    }
+
+    bool addChannel(std::string cname) {
+        if (channel_tables.find(cname) == channel_tables.end()) {
+            ChannelData chn;
+            channel_tables.insert(std::pair<std::string, ChannelData>(cname, chn));
+            return (true);
+        }
+        return (false);
+    }
+
     UserData&   getUserTable() {
         return (user_table);
     }
-    void addTable() {}
+
+    void printChannelTables() {
+        for (iter it = channel_tables.begin(); it != channel_tables.end(); ++it) {
+            std::cout << "[ channel name :    " << it->first << "   ]\n";
+            it->second.printTables();
+        }
+
+    }
 private:
     std::map<std::string, ChannelData> channel_tables;
     UserData user_table;
