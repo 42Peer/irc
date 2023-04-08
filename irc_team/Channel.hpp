@@ -6,7 +6,6 @@
 class Channel{
 	public :
 		Channel(std::string);
-		
 		~Channel();
 		int addUser(struct s_user_data);
 		int deleteUser(struct s_user_data);
