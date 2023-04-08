@@ -13,22 +13,17 @@ int main() {
     db.addUser(cuser);
     UserData& user = db.getUserTable();
     user.printTables();
-
+    db.addChannel("helo");
+    db.getCorrectChannel("helo").addData(0, cuser);
     ChannelData& channel = db.getCorrectChannel("hello channel!");
     channel.addData(0, cuser);
-//    channel.removeData(cuser.nick);
     db.printChannelTables();
-    db.removeChannel("hello channel!", cuser);
-//    ChannelData channel;
-//    if (channel.addData(0, 12, "hi", "bye") == false) {
-//        std::cout << "Error occur in add Data in channel" << std::endl;
-//    }
-//    if (channel.addData(1, 12, "hi2", "bye") == false) {
-//        std::cout << "Error occur in add Data in channel" << std::endl;
-//    }
-//    if (channel.addData(1, 13, "hi", "good") == false) {
-//        std::cout << "Error occur in add Data in channel" << std::endl;
-//    }
-//    channel.printTables();
+    std::cout << "done \n";
+//    db.removeChannel("hello channel", cuser);
+//    db.removeChannel("hello channel!", cuser);
+    db.removeUser(cuser);
+//    std::cout << "user :" << std::endl;
+//    user.printTables();
+//    std::cout << "....\n";
     db.printChannelTables();
 }

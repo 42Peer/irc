@@ -106,6 +106,10 @@ public:
             std::cout << "[user nick : " << it->second.nick << "]\n";
         }
     }
+
+    void removeUser(std::string key) {
+        _tables.erase(key);
+    }
 private:
     std::map<std::string, struct s_user_info> _tables;
 };
@@ -150,9 +154,27 @@ public:
 
     void removeChannel(std::string key, struct s_user_info &user) {
         if (channel_tables.find(key) != channel_tables.end()) {
-            if (channel_tables[key].removeData(user.nick))
+            if (channel_tables[key].removeData(user.nick)) {
                 channel_tables.erase(key);
+            }
         }
+    }
+
+    void removeUser(struct s_user_info user) {
+        iter it = channel_tables.begin();
+        while (it != channel_tables.end())
+        {
+            iter tmp = it;
+            if (channel_tables[it->first].removeData(user.nick)) {
+                ++it;
+                channel_tables.erase(tmp->first);
+                if (it == channel_tables.end())
+                    break ;
+            } else {
+                ++it;
+            }
+        }
+        user_table.removeUser(user.nick);
     }
 
 private:
