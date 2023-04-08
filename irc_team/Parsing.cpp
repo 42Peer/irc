@@ -44,18 +44,36 @@ std::map<int, std::vector<std::string > > parsing(std::string buf)
 
 		cmd_type = checkCommand(cmd);
 		std::cout << buf.size() << ' ' << cmd.size() << '\n';
-		if (buf.size() == cmd.size())
-			args = "";
-		else
+		if (buf.size() == cmd.size()) // [/join] case
+			args = "";				// prevent segfault
+		else							// [/join ] case
 			args = buf.substr(cmd.size() + 1);
-		new_string.str(args);
+		new_string.str(args);			// new_string <- grap sentences without cmd
 
 		if (cmd_type == EMPTY || cmd_type == WRONGARGU || cmd_type == INVAILDCMD)
 			;
 		else if (cmd_type == PRIVMSG)
-			; /* PRIVMSG split */
+		{	// nick_name :msg
+			std::string nick_name;
+			std::string msg;
+			std::getline(new_string, nick_name, ' ');
+			if (nick_name.find(':') == nick_name.npos)
+				; // error
+			else
+			{	// :가 있는지 체크
+				ret_vector.push_back(nick_name);
+
+				msg = new_string.str();
+				
+			}
+			// /privmsg dllee           :msg
+			// /privmsg dlle            :msg
+			//iss asdf asdf asdf asd
+			// msg[0] != ':' -> error 
+			// PRIVMGS 형태 -> cmd :message
+		}/* PRIVMSG split */
 		else
-		{
+		{	// 
 			std::cout << ret_vector.size() << " START getline\n";
 			while (std::getline(new_string, temp_arg, ' '))
 				ret_vector.push_back(temp_arg);
@@ -109,45 +127,6 @@ std::map<int, std::vector<std::string > > parsing(std::string buf)
 				empty -3
 			: substr(:_pos + 1) 
 		*/
-		// if (cmd_type == MSG)
-		// {
-		// 	// msg 인자갯수가 맞는지
-		// 	if (ret_vector.size() != 2)
-		// 		cmd_type == -2;
-		// 	// msg start with ':
-			
-		// }
-		// ret_map[checkCommand(cmd)] = argument;
-		// return (ret_map);
-		/*
-		 * cmd <- 커맨드가 담김
-		 * 커맨드 종류 체크가 필요하다.
-		 * checkCommand(cmd)
-		 */
-		// new_string.clear();
-		// test = buf.substr(cmd.size() + 1);
-		// new_string.str(test);
-		// while (std::getline(new_string, temp, ' '))
-		// {
-			
-		// }
-
-		// std::cout << "TEST " << test << '\n';
-		// new_string.clear();
-		// std::cout << cmd << '\n';
-		// std::cout << ret_vector.size() << '\n';
-		// if (ret_vector.size() == 0)
-		// {
-			
-		// }
-		// // 명령어 파싱 -> invalid 경우에는 return 
-	
-		// // (1) / 뒤부터 화이트스페이스까지 끊어온다.
-		// // (2) 그리고 1~11에 맞는게 있는지 체크
-		// // (2-1) 맞는게 있다면 리턴
-		// // (2-2) 맞는게 없다면 에러다 에러 리턴	
-		// ret_vector.push_back("");
-		// ret_map[-3] = ret_vector;
 		return (ret_map);
 	}
 
@@ -191,6 +170,6 @@ int checkCommand(std::string cmd)
 
 int main(void)
 {
-	parsing("/quit ");
+	parsing("/privmsg dllee :asdf");
 	return (0);
 }
