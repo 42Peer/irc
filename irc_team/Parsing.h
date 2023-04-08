@@ -2,8 +2,8 @@
 # define _PARSING_H_
 
 enum{
-	EMPTY = -3,
-	WRONGARGU = -2,
+	EMPTY = -3, /* no cmd or no argu */
+	WRONGARG = -2, /* wrong argument number */
 	INVAILDCMD = -1,
 	MESSAGE = 0,
 	JOIN, /* arg : 1      delimeter : ',' */

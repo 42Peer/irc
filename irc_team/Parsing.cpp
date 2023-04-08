@@ -5,11 +5,6 @@
 #include <string>
 #include <sstream>
 
-
-//__inline std::map<int, std::ve emptystring(void);
-// 
-// msgcase(buf);
-
 int checkCommand(std::string cmd);
 
 std::map<int, std::vector<std::string > > parsing(std::string buf)
@@ -37,11 +32,9 @@ std::map<int, std::vector<std::string > > parsing(std::string buf)
 		//bot
 	// }
 	else
-	{	// deal with cmds
+	{	// deal with cmds, you will get cmd and args
 		new_string.str(buf);	
 		std::getline(new_string, cmd, ' ');
-		new_string.clear();
-
 		cmd_type = checkCommand(cmd);
 		std::cout << buf.size() << ' ' << cmd.size() << '\n';
 		if (buf.size() == cmd.size()) // [/join] case
@@ -50,30 +43,38 @@ std::map<int, std::vector<std::string > > parsing(std::string buf)
 			args = buf.substr(cmd.size() + 1);
 		new_string.str(args);			// new_string <- grap sentences without cmd
 
-		if (cmd_type == EMPTY || cmd_type == WRONGARGU || cmd_type == INVAILDCMD)
+		if (cmd_type == EMPTY || cmd_type == WRONGARG || cmd_type == INVAILDCMD)
 			;
 		else if (cmd_type == PRIVMSG)
-		{	// nick_name :msg
+		{	// process PRIVMSG here
 			std::string nick_name;
 			std::string msg;
 			std::getline(new_string, nick_name, ' ');
-			if (nick_name.find(':') == nick_name.npos)
+			if (nick_name.find(':') != nick_name.npos)
 				; // error
 			else
-			{	// :가 있는지 체크
+			{
 				ret_vector.push_back(nick_name);
-
-				msg = new_string.str();
-				
+                msg = args.substr(nick_name.size() + 1);
+                size_t i(-1);
+                while(msg[++i])
+                {
+                    if (msg[i] != ' ')
+                        break ;
+                }
+                msg = msg.substr(i);
+                if (msg == "" || (msg[0] == ':' && msg.size() == 1))
+                    cmd_type = EMPTY;
+                else if (msg[0] != ':')
+                    cmd_type = WRONGARG;
+                else {
+                    msg = msg.substr(1);
+                    ret_vector.push_back(msg);
+                }
 			}
-			// /privmsg dllee           :msg
-			// /privmsg dlle            :msg
-			//iss asdf asdf asdf asd
-			// msg[0] != ':' -> error 
-			// PRIVMGS 형태 -> cmd :message
-		}/* PRIVMSG split */
+		}
 		else
-		{	// 
+		{	// process another cmds here
 			std::cout << ret_vector.size() << " START getline\n";
 			while (std::getline(new_string, temp_arg, ' '))
 				ret_vector.push_back(temp_arg);
@@ -90,43 +91,32 @@ std::map<int, std::vector<std::string > > parsing(std::string buf)
 			if (vector_size != 0)
 				cmd_type = -2;
 		}
-		else if (cmd_type == KICK || cmd_type == NICK || cmd_type == JOIN)
-		{	// KICK NICK JOIN
-			if (vector_size != 1)
-				cmd_type = -2;
-		}
-		//
+		else if (cmd_type == KICK || cmd_type == NICK || cmd_type == JOIN) {    // KICK NICK JOIN
+            if (vector_size != 1)
+                cmd_type = -2;
+        }
 
-		/*
-			// JOIN #channelname,#channelname
-			// PART #channelname,#channelname
-			std::vector<std::string> ft_split(std::vector<std::stirng> args)
-			if (args.size() == 0)
-				return (args);
-			else{
-				
-				std::string temp = args.front();
-				args.clear();
-				iss.str(temp);
-				while (std::getline(iss, buf, ','))
-					args.pushback(buf);
-				return (args);	
-			}
-			
-		*/
-
-		/*
-			// PRIVMSG <nickname> :message
-			if ret_vetor[1][0] != ':'
-				/privmsg seowo:asdf asdf adsf
-			
-			std::getline(' ')
-			std::vector.first() . find() ':' error 
-			std::vector.second()[0] != ':'  error
-			std::vecotr.second().size() == 1
-				empty -3
-			: substr(:_pos + 1) 
-		*/
+        if (cmd_type == JOIN || cmd_type == PART) {
+            if (ret_vector.size() == 0 )
+                ;
+            else
+            {
+                std::string temp = *(ret_vector.begin());
+                if (temp.find(',') == std::string::npos)
+                    ;
+                else {
+                    std::istringstream test_stream;
+                    test_stream.str(temp);
+                    ret_vector.clear();
+                    std::string channel;
+                    while (std::getline(test_stream, channel, ',')) {
+                        std::cout << channel << '\n';
+                        ret_vector.push_back(channel);
+                    }
+                    std::cout << "hi";
+                }
+            }
+        }
 		return (ret_map);
 	}
 
@@ -150,7 +140,7 @@ int checkCommand(std::string cmd)
 		return (PART);
 	if (cmd == "/quit")
 		return (QUIT);
-	if (cmd == "/msg")
+	if (cmd == "/privmsg")
 		return (PRIVMSG);
 	if (cmd == "/list")
 		return (LIST);
@@ -170,6 +160,6 @@ int checkCommand(std::string cmd)
 
 int main(void)
 {
-	parsing("/privmsg dllee :asdf");
+  	parsing("/join #123,#1234,#4321");
 	return (0);
 }
