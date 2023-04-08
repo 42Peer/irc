@@ -1,10 +1,17 @@
 #ifndef _PARSING_H_
 # define _PARSING_H_
 
+#include <map>
+#include <vector>
+#include <iostream>
+#include <string>
+#include <sstream>
+
 enum{
-	EMPTY = -3, /* no cmd or no argu */
-	WRONGARG = -2, /* wrong argument number */
-	INVAILDCMD = -1,
+	FORMATERR = -4, /* wrong msg format or wrong channel format */
+	WRONGARG = -3, /* wrong argument number */
+	INVAILDCMD = -2,
+	EMPTY = -1, /* no cmd or no argu */
 	MESSAGE = 0,
 	JOIN, /* arg : 1      delimeter : ',' */
 	NICK, /* arg : 1 */
@@ -15,12 +22,6 @@ enum{
 	LIST, /* arg : 0 */
 };
 
+std::map<int, std::vector<std::string> > parseData(std::string);
+
 #endif /* _PARSING_H_ */
-
-
-/*
-	인자 갯수를 먼저 체크한다?
-	그리고 나서 커맨드 타입 구분한다.
-	
-
-*/
