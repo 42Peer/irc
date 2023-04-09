@@ -27,6 +27,13 @@ public:
         return (false);
     }
 
+	int getPrivileges(std::string nick) {
+		if (isExist(nick)) {
+			return (_tables[nick].privileges);
+		}
+		return (-1);
+	}
+
     bool addData(int privilege, s_user_info& user) {
         if (isExist(user.nick)) {
             std::cerr << "nick name 중복됨." << std::endl;
@@ -107,6 +114,13 @@ public:
         }
     }
 
+	void updateUser(struct s_user_info org, struct s_user_info _new) {
+		if (_tables.find(org.nick) != _tables.end()) {
+			_tables.erase(org.nick);
+		}
+		_tables.insert(std::pair<std::string, struct s_user_info>(_new.nick, _new));
+	}
+
     void removeUser(std::string key) {
         _tables.erase(key);
     }
@@ -176,6 +190,21 @@ public:
         }
         user_table.removeUser(user.nick);
     }
+
+	void updateUser(struct s_user_info& org, struct s_user_info& new_user) {
+		iter it = channel_tables.begin();
+		while (it != channel_tables.end())
+        {
+            iter tmp = it;
+			int privileges = channel_tables[it->first].getPrivileges(org.nick);
+			if (privileges != -1) {
+				channel_tables[it->first].removeData(org.nick);
+				channel_tables[it->first].addData(privileges, new_user);
+			}
+           	++it;
+        }
+		user_table.updateUser(org, new_user);
+	}
 
 private:
     std::map<std::string, ChannelData> channel_tables;
