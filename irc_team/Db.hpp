@@ -169,9 +169,10 @@ public:
 
     void removeChannel(const std::string& key, struct s_user_info &user) {
 		/* iterator erase*/
-        if (channel_tables.find(key) != channel_tables.end()) {
+        iter it;
+        if ((it = channel_tables.find(key)) != channel_tables.end()) {
             if (channel_tables[key].removeData(user.nick)) {
-                channel_tables.erase(key);
+                channel_tables.erase(it);
             }
         }
     }
