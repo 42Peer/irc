@@ -19,10 +19,10 @@ struct s_user_info {
 class ChannelData
 {
 public:
-    typedef std::map<std::string, s_user_info>::iterator iter;
+    typedef std::map<std::string, struct s_user_info>::iterator iter;
 
-    bool isExist(std::string nick) {
-        if (_tables.size() > 0 && _tables.find(nick) != _tables.end())
+    bool isExist(const std::string& nick) {
+        if (!_tables.empty() && _tables.find(nick) != _tables.end())
             return (true);
         return (false);
     }
@@ -34,7 +34,7 @@ public:
 		return (-1);
 	}
 
-    bool addData(int privilege, s_user_info& user) {
+    bool addData(int privilege, struct s_user_info& user) {
         if (isExist(user.nick)) {
             std::cerr << "nick name 중복됨." << std::endl;
             return false;
@@ -49,7 +49,7 @@ public:
         return true;
     }
 
-    bool removeData(std::string nick) {
+    bool removeData(const std::string& nick) {
         _tables.erase(nick);
         if (_tables.size() >= 1)
             return false;
@@ -75,10 +75,11 @@ class UserData
 {
 public:
     typedef  std::map<std::string, struct s_user_info>::iterator iter;
-    bool isExist(std::string nick) {
-        if (_tables.size() > 0 && _tables.find(nick) != _tables.end())
-            return (true);
-        return (false);
+    bool isExist(const std::string& nick) {
+		return (_tables.find(nick) != _tables.end());
+        // if (_tables.size() > 0 && _tables.find(nick) != _tables.end())
+        //     return (true);
+        // return (false);
     }
 
     bool addUser(int privileges, s_user_info& user) {
@@ -94,7 +95,7 @@ public:
         return (true);
     }
 
-    int userFd(std::string nick) {
+    int userFd(const std::string& nick) {
         iter it = _tables.find(nick);
         if (it == _tables.end())
             return (-1);
@@ -133,14 +134,14 @@ class Db
 public:
     typedef std::map<std::string, ChannelData>::iterator iter;
 
-    ChannelData& getCorrectChannel(std::string channelName) {
+    ChannelData& getCorrectChannel(const std::string& channelName) {
         if (channel_tables.find(channelName) == channel_tables.end()) {
             this->addChannel(channelName);
         }
         return (channel_tables[channelName]);
     }
 
-    bool addChannel(std::string cname) {
+    bool addChannel(const std::string& cname) {
         if (channel_tables.find(cname) == channel_tables.end()) {
             ChannelData chn;
             channel_tables.insert(std::pair<std::string, ChannelData>(cname, chn));
@@ -166,7 +167,8 @@ public:
         }
     }
 
-    void removeChannel(std::string key, struct s_user_info &user) {
+    void removeChannel(const std::string& key, struct s_user_info &user) {
+		/* iterator erase*/
         if (channel_tables.find(key) != channel_tables.end()) {
             if (channel_tables[key].removeData(user.nick)) {
                 channel_tables.erase(key);
