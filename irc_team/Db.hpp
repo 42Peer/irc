@@ -6,7 +6,12 @@
 #include <string>
 #include <utility>
 
-using namespace std;
+// using namespace std;
+
+struct s_channel_info {
+	std::string nick;
+	int privileges;
+};
 
 struct s_user_info {
     int fd;
@@ -198,7 +203,6 @@ public:
 		iter it = channel_tables.begin();
 		while (it != channel_tables.end())
         {
-            iter tmp = it;
 			int privileges = channel_tables[it->first].getPrivileges(org.nick);
 			if (privileges != -1) {
 				channel_tables[it->first].removeData(org.nick);
