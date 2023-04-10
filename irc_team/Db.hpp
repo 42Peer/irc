@@ -103,12 +103,6 @@ public:
     void printTables() {
 		std::vector<std::string>::iterator vi;
         for (iter it = _tables.begin(); it != _tables.end(); ++it) {
-            if (it->second.privileges == 0)
-                std::cout << "방장";
-            else if (it->second.privileges == -1)
-                std::cout << "not entered room" << std::endl;
-            else
-                std::cout << "User";
             std::cout << "[user name : " << it->second.name << "]";
             std::cout << "[user nick : " << it->second.nick << "]\n";
 			std::cout <<"===== Channel list =====\n";
@@ -233,18 +227,21 @@ public:
         user_table.removeUser(user.nick);
     }
 
-	void updateUser(struct s_user_info& org, struct s_user_info& new_user) {
+	bool updateUser(struct s_user_info& org, struct s_user_info& usr) {
+		if (user_table.isExist(usr.nick))
+			return false;
 		iter it = channel_tables.begin();
 		while (it != channel_tables.end())
         {
 			int privileges = channel_tables[it->first].getPrivileges(org.nick);
 			if (privileges != -1) {
 				channel_tables[it->first].removeData(org.nick);
-				channel_tables[it->first].addData(new_user);
+				channel_tables[it->first].addData(usr);
 			}
            	++it;
         }
-		user_table.updateUser(org, new_user);
+		user_table.updateUser(org, usr);
+		return true;
 	}
 
 	void addChannelUser(struct s_user_info& usr, const std::string& channel_name) {

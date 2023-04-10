@@ -26,10 +26,12 @@ int main() {
     // user.printTables();
 	db.addChannelUser(cuser, "hello");
 	db.printChannelTables();
-	// db.addChannelUser(user2, "hello");
+	db.addChannelUser(user2, "hello");
 	db.addChannelUser(user2, "hello2");
 	db.removeChannel(user2, "hello");
 	db.removeChannel(jujeon, "hello");
+	db.removeChannel(jujeon, "test");
+	// std::cout << db.updateUser(jujeon, cuser) << std::endl;
     // db.addChannel("helo");
     // db.getCorrectChannel("helo").addData(0, cuser);
     // ChannelData& channel = db.getCorrectChannel("hello channel!");
@@ -46,7 +48,7 @@ int main() {
 	// db.getUserTable().printTables();
     // db.removeUser(user2);
 	db.printChannelTables();
-	std::cout << "-----print user-----\n";
+	// std::cout << "-----print user-----\n";
 	db.printUserTables();
 	// user.printTables();
 //    std::cout << "user :" << std::endl;
