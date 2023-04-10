@@ -262,25 +262,6 @@ public:
         user_table.removeUser(user.nick);
     }
 	
-	// void removeUserFdint fd) {
-	// 	s_user_info user = getUser(convertFdToId(id));
-    //     iter it = channel_tables.begin();
-    //     while (it != channel_tables.end())
-    //     {
-    //         iter tmp = it;
-	// 		channel_tables[it->first].removeData(user.nick);
-    //         if (!channel_tables[it->first].isEmpty()) {
-    //             ++it;
-    //             channel_tables.erase(tmp);
-    //             if (it == channel_tables.end())
-    //                 break ;
-    //         } else {
-    //             ++it;
-    //         }
-    //     }
-    //     user_table.removeUser(user.nick);
-    // }
-
 	bool updateUser(struct s_user_info& org, struct s_user_info& usr) {
 		if (user_table.isExist(usr.nick))
 			return false;
