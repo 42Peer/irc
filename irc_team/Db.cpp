@@ -5,8 +5,13 @@ int main() {
     Db db;
     s_user_info cuser;
 	s_user_info user2;
+	s_user_info jujeon;
 
-    cuser.privileges = 0;
+	jujeon.privileges = -1;
+	jujeon.nick = "jujeon";
+	jujeon.name = "joon";
+	jujeon.fd = 12;
+    cuser.privileges = -1;
     cuser.nick = "cuser";
     cuser.name = "bye";
     cuser.fd = 12;
@@ -14,14 +19,17 @@ int main() {
 	user2.name = "bye";
 	user2.fd = 12;
 	user2.privileges = 0;
+	db.addUser(jujeon);
     // db.addChannel("hello channel!");
     // db.addUser(cuser);
     // UserData& user = db.getUserTable();
     // user.printTables();
 	db.addChannelUser(cuser, "hello");
-	db.addChannelUser(user2, "hello");
+	db.printChannelTables();
+	// db.addChannelUser(user2, "hello");
 	db.addChannelUser(user2, "hello2");
 	db.removeChannel(user2, "hello");
+	db.removeChannel(jujeon, "hello");
     // db.addChannel("helo");
     // db.getCorrectChannel("helo").addData(0, cuser);
     // ChannelData& channel = db.getCorrectChannel("hello channel!");

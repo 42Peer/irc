@@ -52,7 +52,9 @@ public:
 	}
 
     void removeData(const std::string& nick) {
-        _tables.erase(nick);
+		iter it = _tables.find(nick);
+		if (it != _tables.end())
+        	_tables.erase(nick);
     }
 
     void printTables() {
@@ -249,7 +251,7 @@ public:
 		if (!user_table.isExist(usr.nick))
 			user_table.addUser(usr);
 		user_table.addChannel(usr, channel_name);
-		ChannelData& chn = getCorrectChannel(channel_name);
+		ChannelData chn = getCorrectChannel(channel_name);
 		chn.addData(usr);
 	}
 
