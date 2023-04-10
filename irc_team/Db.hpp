@@ -167,6 +167,10 @@ public:
         return (channel_tables[channelName]);
     }
 
+	bool isExist(const std::string& id) {
+		return (user_table.isExist(id));
+	}
+
     bool addChannel(const std::string& cname) {
         if (channel_tables.find(cname) == channel_tables.end()) {
             ChannelData chn;
@@ -250,6 +254,10 @@ public:
 		user_table.addChannel(usr, channel_name);
 		ChannelData chn = getCorrectChannel(channel_name);
 		chn.addData(usr);
+	}
+
+	int getFd(std::string &id) {
+		return (user_table.userFd(id));
 	}
 
 private:
