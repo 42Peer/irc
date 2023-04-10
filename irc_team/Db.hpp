@@ -184,7 +184,7 @@ public:
             iter tmp = it;
             if (channel_tables[it->first].removeData(user.nick)) {
                 ++it;
-                channel_tables.erase(tmp->first);
+                channel_tables.erase(tmp);
                 if (it == channel_tables.end())
                     break ;
             } else {
