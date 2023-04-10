@@ -27,7 +27,7 @@ public:
         return (false);
     }
 
-	int getPrivileges(std::string nick) const {
+	int getPrivileges(std::string nick) {
 		if (isExist(nick)) {
 			return (_tables[nick].privileges);
 		}
@@ -56,7 +56,7 @@ public:
         return true;
     }
 
-    void printTables() const {
+    void printTables() {
         for (iter it = _tables.begin(); it != _tables.end(); ++it) {
             if (it->second.privileges == 0)
                 std::cout << "방장";
@@ -76,13 +76,13 @@ class UserData
 public:
     typedef  std::map<std::string, struct s_user_info>::iterator iter;
     bool isExist(const std::string& nick) const {
-		return (_tables.find(nick) != _tables.end());
         // if (_tables.size() > 0 && _tables.find(nick) != _tables.end())
         //     return (true);
         // return (false);
+		return (_tables.find(nick) != _tables.end());
     }
 
-    bool addUser(int privileges, s_user_info& user) {
+    bool addUser(int privileges, struct s_user_info& user) {
         if (isExist(user.nick))
             return (false);
         struct s_user_info info;
@@ -95,14 +95,14 @@ public:
         return (true);
     }
 
-    int userFd(const std::string& nick) const {
+    int userFd(const std::string& nick) {
         iter it = _tables.find(nick);
         if (it == _tables.end())
             return (-1);
         return it->second.fd;
     }
 
-    void printTables() const {
+    void printTables() {
         for (iter it = _tables.begin(); it != _tables.end(); ++it) {
             if (it->second.privileges == 0)
                 std::cout << "방장";
@@ -115,7 +115,7 @@ public:
         }
     }
 
-	void updateUser(struct s_user_info org, struct s_user_info _new) const {
+	void updateUser(struct s_user_info org, struct s_user_info _new) {
 		if (_tables.find(org.nick) != _tables.end()) {
 			_tables.erase(org.nick);
 		}
