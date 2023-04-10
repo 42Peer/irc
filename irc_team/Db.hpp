@@ -200,6 +200,7 @@ public:
         if (user_table.isExist(user.nick))
             return ;
         user_table.addUser(user);
+		fd_tables.insert(std::pair<int, std::string>(user.fd, user.nick));	
     }
 
     void printChannelTables() {
@@ -213,8 +214,17 @@ public:
 		user_table.printTables();
 	}
 
-    void removeChannel(struct s_user_info &user, const std::string& key) {
+	template<typename T>
+    void removeChannel(T param, const std::string& key) {
 		/* iterator erase*/
+		struct s_user_info user;
+		if (typeid(T) != typeid(struct s_user_info))
+		{
+			std::string id = convertFdToId(param);
+			if (id == "")
+				return ;
+			user = user_table.getUser(id);
+		}
         iter it;
         if ((it = channel_tables.find(key)) != channel_tables.end()) {
 			channel_tables[key].removeData(user.nick);
@@ -225,7 +235,16 @@ public:
 		user_table.removeChannel(user, key);
     }
 
-    void removeUser(struct s_user_info user) {
+	template<typename T>
+    void removeUser(T param) {
+		struct s_user_info user;
+		if (typeid(T) != typeid(struct s_user_info))
+		{
+			std::string id = convertFdToId(param);
+			if (id == "")
+				return ;
+			user = user_table.getUser(id);
+		}
         iter it = channel_tables.begin();
         while (it != channel_tables.end())
         {
@@ -242,6 +261,25 @@ public:
         }
         user_table.removeUser(user.nick);
     }
+	
+	// void removeUserFdint fd) {
+	// 	s_user_info user = getUser(convertFdToId(id));
+    //     iter it = channel_tables.begin();
+    //     while (it != channel_tables.end())
+    //     {
+    //         iter tmp = it;
+	// 		channel_tables[it->first].removeData(user.nick);
+    //         if (!channel_tables[it->first].isEmpty()) {
+    //             ++it;
+    //             channel_tables.erase(tmp);
+    //             if (it == channel_tables.end())
+    //                 break ;
+    //         } else {
+    //             ++it;
+    //         }
+    //     }
+    //     user_table.removeUser(user.nick);
+    // }
 
 	bool updateUser(struct s_user_info& org, struct s_user_info& usr) {
 		if (user_table.isExist(usr.nick))
@@ -289,10 +327,9 @@ public:
 	}
 
 	bool addChannelUserFd(int fd, const std::string& channel_name) {
-		std::string nick = this->convertFdToId(fd);
+		std::string nick = convertFdToId(fd);
 		if (nick == "")
 			return (false);
-		std::cout << nick << "\n";
 		addChannelUser(user_table.getUser(nick), channel_name);
 		return true;
 	}
