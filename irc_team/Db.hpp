@@ -84,7 +84,6 @@ public:
             return (false);
         struct s_user_info info;
 
-		info.privileges = user.privileges;
         info.fd = user.fd;
         info.name = user.name;
         info.nick = user.nick;
@@ -151,6 +150,19 @@ public:
 		}
 	}
 
+	std::string getChannelList(struct s_user_info& usr) {
+		if (isExist(usr.nick))
+		{
+			iter it = _tables.find(usr.nick); 
+			if (it->second.channel_list.size() > 0)
+				return it->second.channel_list[it->second.channel_list.size() - 1];
+		}
+		return static_cast<std::string>("");
+	}
+
+	s_user_info& getUser(const std::string& id) {
+		return (_tables[id]);
+	}
 private:
     std::map<std::string, struct s_user_info> _tables;
 };
@@ -245,15 +257,44 @@ public:
            	++it;
         }
 		user_table.updateUser(org, usr);
+		updateFd(org.fd, usr.fd, usr.nick);	
 		return true;
 	}
 
+	void	updateFd(int org, int new_fd, std::string& new_id) {
+		std::map<int, std::string>::iterator iIter = fd_tables.find(org);
+		if (iIter != fd_tables.end())	
+			fd_tables.erase(iIter);
+		fd_tables.insert(std::pair<int, std::string>(new_fd, new_id));
+	}
+
+	std::string convertFdToId(int fd)
+	{
+		std::map<int, std::string>::iterator iIter = fd_tables.find(fd);
+		if (iIter != fd_tables.end())	
+			return (iIter->second);
+		return (static_cast<std::string>(""));
+	}
+	
 	void addChannelUser(struct s_user_info& usr, const std::string& channel_name) {
 		if (!user_table.isExist(usr.nick))
+		{
 			user_table.addUser(usr);
+			std::map<std::string, int>::iterator its;
+			fd_tables.insert(std::pair<int, std::string>(usr.fd, usr.nick));
+		}
 		user_table.addChannel(usr, channel_name);
 		ChannelData chn = getCorrectChannel(channel_name);
 		chn.addData(usr);
+	}
+
+	bool addChannelUserFd(int fd, const std::string& channel_name) {
+		std::string nick = this->convertFdToId(fd);
+		if (nick == "")
+			return (false);
+		std::cout << nick << "\n";
+		addChannelUser(user_table.getUser(nick), channel_name);
+		return true;
 	}
 
 	int getFd(std::string &id) {
@@ -262,6 +303,7 @@ public:
 
 private:
     std::map<std::string, ChannelData> channel_tables;
+	std::map<int, std::string> fd_tables;
     UserData user_table;
 };
 
