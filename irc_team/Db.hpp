@@ -21,13 +21,13 @@ class ChannelData
 public:
     typedef std::map<std::string, struct s_user_info>::iterator iter;
 
-    bool isExist(const std::string& nick) {
+    bool isExist(const std::string& nick) const {
         if (!_tables.empty() && _tables.find(nick) != _tables.end())
             return (true);
         return (false);
     }
 
-	int getPrivileges(std::string nick) {
+	int getPrivileges(std::string nick) const {
 		if (isExist(nick)) {
 			return (_tables[nick].privileges);
 		}
@@ -51,12 +51,12 @@ public:
 
     bool removeData(const std::string& nick) {
         _tables.erase(nick);
-        if (_tables.size() >= 1)
+        if (!_tables.empty())
             return false;
         return true;
     }
 
-    void printTables() {
+    void printTables() const {
         for (iter it = _tables.begin(); it != _tables.end(); ++it) {
             if (it->second.privileges == 0)
                 std::cout << "방장";
@@ -75,7 +75,7 @@ class UserData
 {
 public:
     typedef  std::map<std::string, struct s_user_info>::iterator iter;
-    bool isExist(const std::string& nick) {
+    bool isExist(const std::string& nick) const {
 		return (_tables.find(nick) != _tables.end());
         // if (_tables.size() > 0 && _tables.find(nick) != _tables.end())
         //     return (true);
@@ -95,14 +95,14 @@ public:
         return (true);
     }
 
-    int userFd(const std::string& nick) {
+    int userFd(const std::string& nick) const {
         iter it = _tables.find(nick);
         if (it == _tables.end())
             return (-1);
         return it->second.fd;
     }
 
-    void printTables() {
+    void printTables() const {
         for (iter it = _tables.begin(); it != _tables.end(); ++it) {
             if (it->second.privileges == 0)
                 std::cout << "방장";
@@ -115,7 +115,7 @@ public:
         }
     }
 
-	void updateUser(struct s_user_info org, struct s_user_info _new) {
+	void updateUser(struct s_user_info org, struct s_user_info _new) const {
 		if (_tables.find(org.nick) != _tables.end()) {
 			_tables.erase(org.nick);
 		}
