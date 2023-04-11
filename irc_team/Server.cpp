@@ -22,7 +22,7 @@ Server::Server(int port_, std::string password_) : _password(password_) {
 }
 
 Server::~Server() {
-	std::map<int, struct s_user_data>::iterator iter;
+	std::map<int, struct s_user_info>::iterator iter;
 	for (iter = _user_fd_list.begin(); iter != _user_fd_list.end(); ++iter) {
     	close(iter->first);
 	}
@@ -33,12 +33,12 @@ Server::~Server() {
 
 uintptr_t Server::getServerSocket(void) { return _server_socket; }
 
-void Server::setUser(int fd, std::string uname, std::string nname) {
-	_user_fd_list[fd].nick_name = nname;
-	_user_fd_list[fd].user_name = uname;
+void Server::setUserInfo(int fd, std::string uname, std::string nname) {
+	_user_fd_list[fd].nick = nname;
+	_user_fd_list[fd].name = uname;
 }
 
-struct s_user_data Server::getUserData(int fd)
+struct s_user_info Server::getUserData(int fd)
 {
 	// if (_user_fd_list.find(fd) == _user_fd_list.end())
 		// return ();

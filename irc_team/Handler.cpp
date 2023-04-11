@@ -68,7 +68,7 @@ void Handler::run(void) {
                     wrapEvSet(_event_list, new_client, EVFILT_WRITE, EV_ADD | EV_ENABLE);
 
                     _msgMap[new_client] = "PASSWORD : ";
-                    this->_server.setUser(new_client, "TESTNAME", "TESTNAME");
+                    this->_server.setUserInfo(new_client, "TESTNAME", "TESTNAME");
                     std::cout << "# new client! : " << new_client << '\n';
                 }
                 // 클라이언트면,

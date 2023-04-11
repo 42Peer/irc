@@ -19,6 +19,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
+#include "userStruct.h"
 
 enum{
 	FORMATERR = -4, /* wrong msg format or wrong channel format */
@@ -35,11 +36,11 @@ enum{
 	LIST, /* arg : 0 */
 };
 
-typedef struct s_user_data {
-	std::string user_name;
-	std::string nick_name;
-	std::vector<std::string> channel_lists;
-} t_user_data;
+// typedef struct s_user_data {
+// 	std::string user_name;
+// 	std::string nick_name;
+// 	std::vector<std::string> channel_lists;
+// } t_user_data;
 
 class Server {
 public:
@@ -48,8 +49,8 @@ public:
   
   // int joinChannel -> create
   // int deleteChannel
-	void setUser(int, std::string, std::string);
-	struct s_user_data getUserData(int);
+	void setUserInfo(int, std::string, std::string);
+	struct s_user_info getUserData(int);
 
 	uintptr_t getServerSocket(void);
 	std::string& getServerPassword(void);
@@ -77,7 +78,7 @@ public:
 
 private:
   // std::map<std::string, ChannelData &> _channel_list;
-  std::map<int, struct s_user_data> _user_fd_list;
+  std::map<int, struct s_user_info> _user_fd_list;
   std::string _password;
   int _server_socket;
   struct sockaddr_in _server_addr;

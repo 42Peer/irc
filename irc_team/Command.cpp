@@ -1,4 +1,5 @@
 #include "Command.hpp"
+#include "userStruct.h"
 
 void Message::run(int fd, std::vector<std::string> args) {
 	// <@nick_name> message
@@ -12,13 +13,11 @@ void Message::run(int fd, std::vector<std::string> args) {
 			send(channel->userlist->channel_fd, args.first, sizeof(args.first), 0);	
 	*/
 	Db db;
-	struct s_user_data user_name;
-	user_name = this->_handler.getServer().getUserData(fd);
+	struct s_user_info user_data;
+	user_data = this->_handler.getServer().getUserData(fd);
 	// if (user_name == "")
 	// 	return ;
-	else
-	{
-	}
+	db.getCorrectChannel(user_data.channel_list.back()).size();
 }
 
 void Notice::run(int fd, std::vector<std::string> args) {

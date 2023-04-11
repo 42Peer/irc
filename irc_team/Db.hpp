@@ -6,14 +6,14 @@
 #include <string>
 #include <utility>
 #include <vector>
-
+#include "userStruct.h"
 // using namespace std;
 
-struct s_user_info {
-  std::string nick;
-  std::string name;
-  std::vector<std::string> channel_list;
-};
+// struct s_user_info {
+//   std::string nick;
+//   std::string name;
+//   std::vector<std::string> channel_list;
+// };
 
 class ChannelData {
 public:
