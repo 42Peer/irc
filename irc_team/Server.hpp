@@ -4,27 +4,26 @@
 #include "baseHeader.h"
 #include "userStruct.h"
 #include "Db.hpp"
+#include "Channel.hpp"
 
-Db g_db;
+extern Db g_db;
 
+class Channel;
 class Server {
-public:
-  Server(int, std::string);
-  ~Server();
-  
-  // int joinChannel -> create
-  // int deleteChannel
-	void setUserInfo(int, std::string, std::string);
-	struct s_user_info getUserData(int);
+	public:
+		Server(int, std::string, Channel&);
+		~Server();
 
-	uintptr_t getServerSocket(void);
-	std::string& getServerPassword(void);
-	struct sockaddr_in &getServerAddr(void);
+		uintptr_t getServerSocket(void);
+		std::string& getServerPassword(void);
+		struct sockaddr_in &getServerAddr(void);
+		Channel&	getChannelRef(void);
 
-  void printErrorMsg(const char *msg) {
-  std::cerr << "Error : " << msg << '\n';
-  exit(1);
-}
+		void	setMapData(int, std::string);
+
+		std::string	getUserName(int);
+		void	removeMapData(int);
+		// int	getUserFd(std::string);
 
   /*
     Commands
@@ -41,12 +40,18 @@ public:
   // void cmdKick(void);
   // void cmdNotice(void);
 
-private:
-  // std::map<std::string, ChannelData &> _channel_list;
-  std::map<int, struct s_user_info> _user_fd_list;
-  std::string _password;
-  int _server_socket;
-  struct sockaddr_in _server_addr;
+	private:
+		std::map<int, std::string> _fd_name_map;
+		// std::map<std::string, int> _name_fd_map;
+
+		std::string _password;
+		int _server_socket;
+		struct sockaddr_in _server_addr;
+		Channel& _channel;
 };
 
+void printErrorMsg(const char *msg) {
+	std::cerr << "Error : " << msg << '\n';
+	exit(1);
+}
 #endif /* __SERVER_HPP_ */

@@ -20,7 +20,6 @@ enum{
 	PRIVMSG, /* arg : 2 */
 	KICK, /* arg : 1 */
 	PART, /* arg : 0,1    delimeter : ','  */
-	LIST, /* arg : 0 */
 };
 
 std::pair<int, std::vector<std::string> > parseData(std::string);

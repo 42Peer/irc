@@ -5,13 +5,17 @@
 
 class Channel{
 	public :
-		Channel(std::string);
-		~Channel();
-		int addUser(struct s_user_info);
-		int deleteUser(struct s_user_info);
+		// Channel();
+		// ~Channel();
+		void	setList(std::string, std::string);
+		std::vector<std::string> getUserList(std::string);
+		void	changeNameFromChannelList(std::string, std::string, std::string);
+		void	removeUserFromChannel(std::string, std::string);
+		bool	isExistInChannel(std::string, std::string);
+
 	private :
-		std::string					_channel_name;
-		std::map<std::string, int>	_channel_user_list;
+		std::map<std::string, std::vector<std::string> > _channel_nick_list;
 };
+
 
 #endif /* __CHANNEL_HPP_ */

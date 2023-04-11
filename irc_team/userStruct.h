@@ -10,6 +10,7 @@
 struct s_user_info {
   std::string nick;
   std::string name;
+  int fd;
   std::vector<std::string> channel_list;
 };
 
@@ -25,7 +26,6 @@ struct s_user_info {
 // 	PRIVMSG, /* arg : 2 */
 // 	KICK, /* arg : 1 */
 // 	PART, /* arg : 0,1    delimeter : ','  */
-// 	LIST, /* arg : 0 */
 // };
 
 #endif /* USERSTRUCT_H */

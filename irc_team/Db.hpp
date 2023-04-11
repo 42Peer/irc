@@ -55,6 +55,7 @@ public:
 
     info.name = user.name;
     info.nick = user.nick;
+    info.fd = user.fd;
     info.channel_list = user.channel_list;
     _tables.insert(std::pair<std::string, struct s_user_info>(user.nick, info));
     return (true);

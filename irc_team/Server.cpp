@@ -1,8 +1,7 @@
 #include "Server.hpp"
-#include <netinet/in.h>
-#include <sys/socket.h>
 
-Server::Server(int port_, std::string password_) : _password(password_) {
+Server::Server(int port_, std::string password_, Channel& Ref) : _password(password_), _channel(Ref)
+{
 	_server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (_server_socket == -1)
     	printErrorMsg("Socket()");
@@ -22,9 +21,11 @@ Server::Server(int port_, std::string password_) : _password(password_) {
 }
 
 Server::~Server() {
-	std::map<int, struct s_user_info>::iterator iter;
-	for (iter = _user_fd_list.begin(); iter != _user_fd_list.end(); ++iter) {
-    	close(iter->first);
+	std::map<int, std::string >::iterator it = _fd_name_map.begin();
+	while(it != _fd_name_map.end())
+	{
+		close(it->first);
+		++it;
 	}
   // To destroy channel lists, we need to discuss later
   // _channel_list.clear();
@@ -33,17 +34,29 @@ Server::~Server() {
 
 uintptr_t Server::getServerSocket(void) { return _server_socket; }
 
-void Server::setUserInfo(int fd, std::string uname, std::string nname) {
-	_user_fd_list[fd].nick = nname;
-	_user_fd_list[fd].name = uname;
+Channel&	Server::getChannelRef(void)
+{
+	return (this->_channel);
 }
 
-struct s_user_info Server::getUserData(int fd)
+std::string	Server::getUserName(int fd)
 {
-	// if (_user_fd_list.find(fd) == _user_fd_list.end())
-		// return ();
-	// else
-		return (_user_fd_list[fd]);
+	return (_fd_name_map[fd]);
+}
+
+// int		Server::getUserFd(std::string name)
+// {
+// 	return (_name_fd_map[name]);
+// }
+
+void	Server::setMapData(int fd, std::string name)
+{
+	_fd_name_map[fd] = name;
+	// _name_fd_map[name] = fd;
+}
+
+void	Server::removeMapData(int fd) {
+	_fd_name_map[fd].erase();
 }
 
 struct sockaddr_in &Server::getServerAddr(void) { return _server_addr; }

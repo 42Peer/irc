@@ -1,11 +1,10 @@
 #include "Handler.hpp"
 
-void wrapEvSet(std::vector<struct kevent>& list, int ident, int filter,
-    int flag) {
+void wrapEvSet(std::vector<struct kevent>& list, int ident, int filter, int flag) {
     // We don't know parameter udata when we use
-    struct kevent new_event;
-    EV_SET(&new_event, ident, filter, flag, 0, 0, 0);
-    list.push_back(new_event);
+	struct kevent new_event;
+	EV_SET(&new_event, ident, filter, flag, 0, 0, 0);
+	list.push_back(new_event);
 }
 
 Handler::Handler(Server& server_): _server(server_) {
@@ -68,7 +67,7 @@ void Handler::run(void) {
                     wrapEvSet(_event_list, new_client, EVFILT_WRITE, EV_ADD | EV_ENABLE);
 
                     _msgMap[new_client] = "PASSWORD : ";
-                    this->_server.setUserInfo(new_client, "TESTNAME", "TESTNAME");
+                    // this->_server.setUserInfo(new_client, "TESTNAME", "TESTNAME");
                     std::cout << "# new client! : " << new_client << '\n';
                 }
                 // 클라이언트면,

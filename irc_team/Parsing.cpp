@@ -14,13 +14,13 @@ std::pair<int, std::vector<std::string > > parseData(std::string buf)
 	if (buf == "" || buf[0] == ' ')
 	{
 		ret_vector.push_back("");
-		ret = std::make_pair(EMPTY, ret_vector);
+		ret = std::pair<int, std::vector<std::string> >(EMPTY, ret_vector);
 		return (ret);
 	}
 	else if (buf[0] != '/')
 	{
 		ret_vector.push_back(buf);
-		ret = std::make_pair(MESSAGE, ret_vector);
+		ret = std::pair<int, std::vector<std::string> >(MESSAGE, ret_vector);
 		return (ret);
 	}
 	else
@@ -54,7 +54,7 @@ std::pair<int, std::vector<std::string > > parseData(std::string buf)
 			if (ret_vector.size() != 0 && ret_vector.size() != 1)
 				cmd_type = -2;
 		}
-		else if (cmd_type == QUIT || cmd_type == LIST)
+		else if (cmd_type == QUIT)
 		{
 			if (ret_vector.size() != 0)
 				cmd_type = -2;
@@ -74,7 +74,7 @@ std::pair<int, std::vector<std::string > > parseData(std::string buf)
 			최종적으로 반환 할 map에 데이터 넣어서 execution 파트에서 cmd_type만 확인하여 
 			에러일 경우는 vector부분 확인하지 않게끔
 		*/
-		ret = std::make_pair(cmd_type, ret_vector);
+		ret = std::pair<int, std::vector<std::string> >(cmd_type, ret_vector);
 		return (ret);
 	}
 }
@@ -186,8 +186,6 @@ int checkCommand(std::string cmd)
 		return (QUIT);
 	if (cmd == "/privmsg")
 		return (PRIVMSG);
-	if (cmd == "/list")
-		return (LIST);
 	if (cmd == "/kick")
 		return (KICK);
 	return (INVAILDCMD);

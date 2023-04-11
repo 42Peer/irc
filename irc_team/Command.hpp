@@ -53,9 +53,4 @@ class Part : public Command {
 		void run(int, std::vector<std::string>);	
 };
 
-class List : public Command {
-	public :
-		void run(int, std::vector<std::string>);	
-};
-
 #endif /* __COMMAND_HPP_ */
