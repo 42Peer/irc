@@ -7,18 +7,12 @@ int main() {
 	s_user_info user2;
 	s_user_info jujeon;
 
-	jujeon.privileges = -1;
 	jujeon.nick = "jujeon";
 	jujeon.name = "joon";
-	jujeon.fd = 14;
-    cuser.privileges = -1;
     cuser.nick = "cuser";
     cuser.name = "bye";
-    cuser.fd = 13;
 	user2.nick = "user";
 	user2.name = "bye";
-	user2.fd = 12;
-	user2.privileges = 0;
 	db.addUser(jujeon);
  	// db.addChannel("hello channel!");
     db.addUser(cuser);
@@ -28,10 +22,7 @@ int main() {
 	// db.addChannelUser(user2, "hello");
 	// db.addChannelUser(user2, "hello2");
 	// std::cout << db.convertFdToId(13) << std::endl;
-	db.addChannelUserFd(13, "hello");
 	// db.removeUser(13);
-	db.removeChannel(13, "hello");
-	db.printChannelTables();
 	// db.removeChannel(user2, "hello");
 	// db.removeChannel(jujeon, "hello");
 	// db.removeChannel(jujeon, "test");
@@ -42,7 +33,6 @@ int main() {
     // channel.addData(0, cuser);
 	// user.printTables();
 	// std::cout << "print before change user *\n";
-    db.printUserTables();
 	// db.updateUser(cuser, user2);
 	// std::cout << "print after change user *\n";
 	// db.printChannelTables();
