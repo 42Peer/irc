@@ -5,22 +5,22 @@ int splitByComma(int, std::vector<std::string>&);
 int splitPrivateNoticeCommand(int, std::string, std::vector<std::string>&);
 void splitOtherCommand(std::string, std::vector<std::string>&);
 
-std::map<int, std::vector<std::string > > parseData(std::string buf)
+std::pair<int, std::vector<std::string > > parseData(std::string buf)
 {
 	std::vector<std::string> ret_vector;
-	std::map<int, std::vector<std::string> > ret;
+	std::pair<int, std::vector<std::string> > ret;
 	int cmd_type(0);
 
 	if (buf == "" || buf[0] == ' ')
 	{
 		ret_vector.push_back("");
-		ret[EMPTY] = ret_vector;
+		ret = std::make_pair(EMPTY, ret_vector);
 		return (ret);
 	}
 	else if (buf[0] != '/')
 	{
 		ret_vector.push_back(buf);
-		ret[MESSAGE] = ret_vector;
+		ret = std::make_pair(MESSAGE, ret_vector);
 		return (ret);
 	}
 	else
@@ -74,7 +74,7 @@ std::map<int, std::vector<std::string > > parseData(std::string buf)
 			최종적으로 반환 할 map에 데이터 넣어서 execution 파트에서 cmd_type만 확인하여 
 			에러일 경우는 vector부분 확인하지 않게끔
 		*/
-		ret[cmd_type] = ret_vector;
+		ret = std::make_pair(cmd_type, ret_vector);
 		return (ret);
 	}
 }

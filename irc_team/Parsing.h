@@ -1,8 +1,8 @@
 #ifndef _PARSING_H_
 # define _PARSING_H_
 
-#include <map>
 #include <vector>
+#include <utility>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -23,6 +23,6 @@ enum{
 	LIST, /* arg : 0 */
 };
 
-std::map<int, std::vector<std::string> > parseData(std::string);
+std::pair<int, std::vector<std::string> > parseData(std::string);
 
 #endif /* _PARSING_H_ */

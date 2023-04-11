@@ -46,7 +46,7 @@ public:
   void removeData(const std::string &nick) {
     iter it = _tables.find(nick);
     if (it != _tables.end())
-      _tables.erase(nick);
+      _tables.erase(it);
   }
 
 private:
@@ -73,19 +73,23 @@ public:
   }
 
   void updateUser(struct s_user_info org, struct s_user_info usr) {
-    if (_tables.find(org.nick) != _tables.end()) {
-      _tables.erase(org.nick);
+    usr.channel_list.resize(org.channel_list.size());
+    for (size_t i = 0; i < org.channel_list.size(); ++i) {
+        usr.channel_list[i] = org.channel_list[i];
     }
+    if (isExist(org.nick))
+        _tables.erase(org.nick);
+    usr.channel_list = org.channel_list;
     _tables.insert(std::pair<std::string, struct s_user_info>(usr.nick, usr));
   }
 
   void removeUser(std::string key) { _tables.erase(key); }
 
   void addChannel(struct s_user_info &usr, const std::string &channel_name) {
-    for (size_t i = 0; i < _tables[usr.nick].channel_list.size(); ++i) {
-      if (_tables[usr.nick].channel_list[i] == channel_name)
-        return;
-    }
+    std::vector<std::string>::iterator sitor = _tables[usr.nick].channel_list.begin();
+    for (;sitor != _tables[usr.nick].channel_list.end(); ++sitor)
+        if (*sitor == channel_name)
+            _tables[usr.nick].channel_list.erase(sitor);
     _tables[usr.nick].channel_list.push_back(channel_name);
   }
 
@@ -104,8 +108,9 @@ public:
   std::string getChannelList(struct s_user_info &usr) {
     if (isExist(usr.nick)) {
       iter it = _tables.find(usr.nick);
-      if (it->second.channel_list.size() > 0)
-        return it->second.channel_list[it->second.channel_list.size() - 1];
+      if (it->second.channel_list.empty())
+        return static_cast<std::string>("");
+      return (it->second.channel_list[it->second.channel_list.size() - 1]);
     }
     return static_cast<std::string>("");
   }
@@ -122,7 +127,7 @@ public:
 
   ChannelData &getCorrectChannel(const std::string &channelName) {
     if (channel_tables.find(channelName) == channel_tables.end()) {
-      this->addChannel(channelName);
+      addChannel(channelName);
     }
     return (channel_tables[channelName]);
   }
@@ -155,6 +160,9 @@ public:
       }
     }
     user_table.removeChannel(user, key);
+    std::map<std::string, ChannelData>::iterator channelIter = channel_tables.find(key);
+    if (channelIter != channel_tables.end() && channelIter->second.isEmpty())
+       channel_tables.erase(channelIter);
   }
 
   void removeUser(struct s_user_info &user) {
@@ -177,6 +185,7 @@ public:
   bool updateUser(struct s_user_info &org, struct s_user_info &usr) {
     if (user_table.isExist(usr.nick))
       return false;
+    user_table.updateUser(org, usr);
     iter it = channel_tables.begin();
     while (it != channel_tables.end()) {
       if (it->second.isExist(org.nick)) {
@@ -185,7 +194,6 @@ public:
       }
       ++it;
     }
-    user_table.updateUser(org, usr);
     return true;
   }
 
@@ -193,11 +201,9 @@ public:
                       const std::string &channel_name) {
     if (!user_table.isExist(usr.nick)) {
       user_table.addUser(usr);
-      std::map<std::string, int>::iterator its;
     }
     user_table.addChannel(usr, channel_name);
-    ChannelData chn = getCorrectChannel(channel_name);
-    chn.addData(usr);
+    getCorrectChannel(channel_name).addData(usr);
   }
 
 private:

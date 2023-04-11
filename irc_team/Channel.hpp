@@ -1,7 +1,6 @@
 #ifndef __CHANNEL_HPP_
 # define __CHANNEL_HPP_
 
-#include "etc.hpp"
 
 class Channel{
 	public :
