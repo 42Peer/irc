@@ -4,20 +4,20 @@
 void Message::run(int fd, std::vector<std::string> args) {
 	// <@nick_name> message
 	// @ : privilage
-	/*
-		getChannel(fd);
-		-->current Channel
-		if (!curret_channel)
-			return ;
-		while (user_list)
-			send(channel->userlist->channel_fd, args.first, sizeof(args.first), 0);	
-	*/
-	Db db;
+	
 	struct s_user_info user_data;
 	user_data = this->_handler.getServer().getUserData(fd);
 	// if (user_name == "")
 	// 	return ;
-	db.getCorrectChannel(user_data.channel_list.back()).size();
+	user_data.channel_list.back();
+	/*
+		getUserfromChannel(channel_name) -> std::vector<int>
+		while (it != v.end())
+		{
+			send((*it), args.first, sizeof(args.first), 0);
+
+		}
+	*/
 }
 
 void Notice::run(int fd, std::vector<std::string> args) {

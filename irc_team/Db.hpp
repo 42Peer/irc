@@ -1,19 +1,7 @@
 #ifndef DB_HPP
 #define DB_HPP
 
-#include <iostream>
-#include <map>
-#include <string>
-#include <utility>
-#include <vector>
 #include "userStruct.h"
-// using namespace std;
-
-// struct s_user_info {
-//   std::string nick;
-//   std::string name;
-//   std::vector<std::string> channel_list;
-// };
 
 class ChannelData {
 public:
@@ -206,9 +194,9 @@ public:
     getCorrectChannel(channel_name).addData(usr);
   }
 
-private:
-  std::map<std::string, ChannelData> channel_tables;
-  UserData user_table;
+	private:
+		std::map<std::string, ChannelData> channel_tables;
+		UserData user_table;
 };
 
 #endif /* __DB_HPP_ */

@@ -2,9 +2,6 @@
 # define __COMMAND_HPP_
 
 #include "Handler.hpp"
-#include "Db.hpp"
-
-Db _db;
 
 class Command{
 	public :

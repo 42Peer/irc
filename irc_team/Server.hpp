@@ -1,46 +1,11 @@
 #ifndef __SERVER_HPP_
 #define __SERVER_HPP_
 
-#include <cstdlib>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <fcntl.h>
-#include <iostream>
-#include <map>
-#include <memory.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <string>
-#include <sys/_types/_socklen_t.h>
-#include <sys/event.h>
-#include <sys/fcntl.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <vector>
+#include "baseHeader.h"
 #include "userStruct.h"
+#include "Db.hpp"
 
-enum{
-	FORMATERR = -4, /* wrong msg format or wrong channel format */
-	WRONGARG = -3, /* wrong argument number */
-	INVAILDCMD = -2,
-	EMPTY = -1, /* no cmd or no argu */
-	MESSAGE = 0,
-	JOIN, /* arg : 1      delimeter : ',' */
-	NICK, /* arg : 1 */
-	QUIT, /* arg : 0 */
-	PRIVMSG, /* arg : 2 */
-	KICK, /* arg : 1 */
-	PART, /* arg : 0,1    delimeter : ','  */
-	LIST, /* arg : 0 */
-};
-
-// typedef struct s_user_data {
-// 	std::string user_name;
-// 	std::string nick_name;
-// 	std::vector<std::string> channel_lists;
-// } t_user_data;
+Db g_db;
 
 class Server {
 public:
@@ -83,6 +48,5 @@ private:
   int _server_socket;
   struct sockaddr_in _server_addr;
 };
-// run은 Server에 두는게 맞지 않는가??
 
 #endif /* __SERVER_HPP_ */
