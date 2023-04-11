@@ -13,6 +13,7 @@ enum{
 	INVAILDCMD = -2,
 	EMPTY = -1, /* no cmd or no argu */
 	MESSAGE = 0,
+	NOTICE,
 	JOIN, /* arg : 1      delimeter : ',' */
 	NICK, /* arg : 1 */
 	QUIT, /* arg : 0 */
