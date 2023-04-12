@@ -17,11 +17,6 @@ private:
   Server& _server;
 
   void callPaser(std::string);
-
-  void printErrorMsg(const char* msg) {
-    std::cerr << "Error : " << msg << '\n';
-    exit(1);
-  }
 };
 
 

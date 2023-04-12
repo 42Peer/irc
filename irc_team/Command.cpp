@@ -1,6 +1,8 @@
 #include "Command.hpp"
 #include "userStruct.h"
 
+extern Db g_db;
+
 void Message::run(int fd, std::vector<std::string> args) {
 	struct s_user_info user_data;
 	std::string name;
@@ -18,13 +20,38 @@ void Message::run(int fd, std::vector<std::string> args) {
 }
 
 void Notice::run(int fd, std::vector<std::string> args) {
-	// <user or channel>{,<user or channel>} messsage
-	// 
+	std::vector<std::string>::iterator it = args.begin();
+	//prefix
+	if (args.front()[0] == '#')
+	{
+		while (it != args.end() - 1)
+		{
+			std::vector<std::string>::iterator cit = this->_handler.getServer().getChannelRef().getUserList(*it).begin();
+			std::vector<std::string>::iterator ceit = this->_handler.getServer().getChannelRef().getUserList(*it).end();
+			while(cit != ceit)
+			{
+				send(g_db.getUserTable().getUser(*cit).fd, args.back().c_str(), strlen(args.back().c_str()), 0);
+				++cit;
+			}
+			++it;
+		}
+	}
+	else
+	{
+		while (it != args.end() - 1)
+		{
+			if (this->_handler.getServer().getUserName(g_db.getUserTable().getUser(*it).fd) == "")
+				; /* err msg */
+			else
+			{
+				send(g_db.getUserTable().getUser(*it).fd, args.back().c_str(), strlen(args.back().c_str()), 0);
+			}
+			++it;
+		}
+	}
 }
+
 void Join::run(int fd, std::vector<std::string> args) {
-/*
-    "/join [채널명]" : 특정 채널에 조인합니다. (확인필요)
-*/
 	std::vector<std::string>::iterator it = args.begin();
 	std::string name = this->_handler.getServer().getUserName(fd);
 	while (it != args.end())

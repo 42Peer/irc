@@ -1,5 +1,7 @@
 #include "Channel.hpp"
 
+extern Db g_db;
+
 void Channel::setList(std::string channel_name, std::string nick_name)
 {
 	if (_channel_nick_list.find(channel_name) == _channel_nick_list.end())

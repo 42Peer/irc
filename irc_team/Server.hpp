@@ -6,7 +6,6 @@
 #include "Db.hpp"
 #include "Channel.hpp"
 
-extern Db g_db;
 
 class Channel;
 class Server {
@@ -50,8 +49,4 @@ class Server {
 		Channel& _channel;
 };
 
-void printErrorMsg(const char *msg) {
-	std::cerr << "Error : " << msg << '\n';
-	exit(1);
-}
 #endif /* __SERVER_HPP_ */

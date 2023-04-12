@@ -3,10 +3,11 @@
 
 #include "Handler.hpp"
 
+
 class Command{
 	public :
 		Command(Handler&);
-		virtual void run(int, int, std::vector<std::string>) = 0;
+		virtual void run(int, std::vector<std::string>) = 0;
 		// Handler& getHandler(void);
 
 	protected :

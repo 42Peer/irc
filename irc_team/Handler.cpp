@@ -1,5 +1,8 @@
 #include "Handler.hpp"
-
+void printErrorMsg(const char *msg) {
+	std::cerr << "Error : " << msg << '\n';
+	exit(1);
+}
 void wrapEvSet(std::vector<struct kevent>& list, int ident, int filter, int flag) {
     // We don't know parameter udata when we use
 	struct kevent new_event;
@@ -150,3 +153,40 @@ Server& Handler::getServer(void)
 {
 	return (_server);
 }
+
+// void figureCommand(std::pair<int, std::vector<std::string> > data)
+// {
+// 	if (data.first < 0)
+// 		;
+// 	else
+// 	{
+// 		Command* cmd;
+// 		switch (data.first)
+// 		{
+// 			case MESSAGE :
+// 				cmd = new Message();
+// 				msg.run(data.second);
+// 				break;
+// 			case JOIN :
+
+// 				break;
+// 			case NICK :
+
+// 				break;
+// 			case QUIT :
+
+// 				break;
+// 			case PRIVMSG :
+
+// 				break;
+// 			case KICK :
+
+// 				break;
+// 			case PART :
+
+// 				break;
+// 			default :
+// 				; /* somthing wrong */
+// 		}
+// 	}
+// }

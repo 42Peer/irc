@@ -1,5 +1,10 @@
 #include "Server.hpp"
 
+extern Db g_db;
+void printErrorMsg(const char *msg) {
+	std::cerr << "Error : " << msg << '\n';
+	exit(1);
+}
 Server::Server(int port_, std::string password_, Channel& Ref) : _password(password_), _channel(Ref)
 {
 	_server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -41,6 +46,8 @@ Channel&	Server::getChannelRef(void)
 
 std::string	Server::getUserName(int fd)
 {
+	if (_fd_name_map.find(fd) == _fd_name_map.end())
+		return ("");
 	return (_fd_name_map[fd]);
 }
 

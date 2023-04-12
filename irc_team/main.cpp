@@ -1,5 +1,6 @@
-#include "Server.hpp"
 #include "Handler.hpp"
+#include "Db.hpp"
+
 
 bool isArgv(const char *argv) {
   for (int i = 0; argv[i]; ++i) {
