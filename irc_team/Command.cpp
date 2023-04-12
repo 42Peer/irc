@@ -7,16 +7,11 @@ void Message::run(int fd, std::vector<std::string> args) {
 	struct s_user_info user_data;
 	std::string name;
 	name = this->_handler.getServer().getUserName(fd);
-	user_data = this->_handler.getServer().g_db.getUserTable().getUser(name);
-	if (!user_data.channel_list.size())
-		return ;
-	std::vector<std::string>::iterator it = this->_handler.getServer().getChannelRef().getUserList(user_data.channel_list.back()).begin();
-	std::vector<std::string>::iterator eit = this->_handler.getServer().getChannelRef().getUserList(user_data.channel_list.back()).end();
-	while (it != eit)
-	{
-		send(this->_handler.getServer().g_db.getUserTable().getUser(*it).fd, args.front().c_str(), args.front().size(), 0);
-		++it;
-	}
+    std::string test = this->_handler.getServer().g_db.getUserTable().getUser(name).getChannelList();
+    std::vector<std::string> user_table = this->_handler.getServer().g_db.getCorrectChannel(test).getUserList();
+    for (size_t i = 0; i < user_table.size(); ++i) {
+
+    }
 }
 
 void Notice::run(int fd, std::vector<std::string> args) {

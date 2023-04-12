@@ -5,8 +5,6 @@
 
 class ChannelData {
 public:
-  typedef std::map<std::string, int>::iterator iter;
-
   int grantUser() const { return (_tables.size() >= 1); }
 
   bool isExist(const std::string &nick) const {
@@ -32,9 +30,17 @@ public:
   bool isEmpty() const { return (!_tables.empty()); }
 
   void removeData(const std::string &nick) {
-    iter it = _tables.find(nick);
+    std::map<std::string, int>::iterator it = _tables.find(nick);
     if (it != _tables.end())
       _tables.erase(it);
+  }
+
+  std::vector<std::string> getUserList() {
+      std::map<std::string, int>::iterator it = _tables.begin();
+      std::vector<std::string> userList;
+      for (; it != _tables.end(); ++it)
+          userList.push_back(it->first);
+      return userList;
   }
 
 private:

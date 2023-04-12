@@ -26,6 +26,7 @@ Handler::~Handler() {}
 
 void Handler::run(void) {
     std::cout << "socket server running...\n";
+    std::map<int, std::string> tmp_data;
 
     int evt;
     while (true) {
@@ -60,10 +61,8 @@ void Handler::run(void) {
                     int new_client = accept(_server.getServerSocket(), (struct sockaddr*)(&_server.getServerAddr()), &sock_len);
                     if (new_client == -1)
                         continue;
-
                     // 옵션 주고
                     setsockopt(new_client, SOL_SOCKET, SO_REUSEADDR, 0, 0);
-
                     // 논 블록 소켓으로 설정
                     if (fcntl(new_client, F_SETFL, O_NONBLOCK) == -1)
                         printErrorMsg("fcntl()");
