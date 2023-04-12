@@ -14,7 +14,7 @@ void Message::run(int fd, std::vector<std::string> args) {
 	std::vector<std::string>::iterator eit = this->_handler.getServer().getChannelRef().getUserList(user_data.channel_list.back()).end();
 	while (it != eit)
 	{
-		send(this->_handler.getServer().g_db.getUserTable().getUser(*it).fd, args.front().c_str(), sizeof(args.front().c_str()), 0);
+		send(this->_handler.getServer().g_db.getUserTable().getUser(*it).fd, args.front().c_str(), args.front().size(), 0);
 		++it;
 	}
 }

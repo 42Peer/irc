@@ -98,7 +98,6 @@ void Handler::run(void) {
                 // 클라이언트면,
                 else
                 {
-
                     std::string ret;
                     char buf[1024];
                     int r;
@@ -107,15 +106,14 @@ void Handler::run(void) {
                     
                     while ((r = read(_monitor[i].ident, buf, 1024)) > 0)
                     {
+                        r = read(_monitor[i].ident, buf, 1024);
                         buf[r] = 0;
                         ret += buf;
                     }
-
                     // // pass가 아니면,
                     // _msgMap[_monitor[i].ident] = ret;
-
-
-                    ret = ret.substr(0, ret.size() - 1);
+//                    if (tmp != "")
+//                    ret = ret.substr(0, ret.size() - 1);
 					// ret.append("\r\n");
                     // std::cout << "# pass : _" << ret << "_\n";
 

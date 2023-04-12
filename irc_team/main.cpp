@@ -28,6 +28,5 @@ int main(int argc, char **argv) {
   Server serv(atoi(argv[1]), pass, c);
   Handler handler(serv);
   handler.run();
-
   return EXIT_SUCCESS;
 }

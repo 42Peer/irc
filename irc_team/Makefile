@@ -1,5 +1,5 @@
 CXX			=	c++
-CXXFLAGS	=	-std=c++98
+CXXFLAGS	=	-std=c++98 -g3
 SRCS		=	main.cpp \
 				Server.cpp \
  				Handler.cpp \
