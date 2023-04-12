@@ -2,29 +2,26 @@
 
 extern Db g_db;
 
-void Channel::setList(std::string channel_name, std::string nick_name)
+bool Channel::setList(std::string channel_name, std::string nick_name)
 {
 	if (_channel_nick_list.find(channel_name) == _channel_nick_list.end())
 	{
 		std::vector<std::string> temp_vector;
 		temp_vector.push_back(nick_name);
 		_channel_nick_list[channel_name] = temp_vector;
-		g_db.addChannel(channel_name);
-		g_db.addChannelUser(g_db.getUserTable().getUser(nick_name), channel_name);
+		return (true);
 	}
 	else
 	{
 		//duplication check needed?
 		if (std::find(_channel_nick_list[channel_name].begin(), _channel_nick_list[channel_name].end(), nick_name)
 							!= _channel_nick_list[channel_name].end())
-		{
 			_channel_nick_list[channel_name].push_back(nick_name);
-			g_db.addChannelUser(g_db.getUserTable().getUser(nick_name), channel_name);
-		}
+		return (false);
 	}
 };
 
-std::vector<std::string> Channel::getUserList(std::string channel_name)
+std::vector<std::string>& Channel::getUserList(std::string channel_name)
 {
 	// if (_channel_nick_list.find(channel_name) == _channel_nick_list.end())
 		// return (NULL);

@@ -1,16 +1,10 @@
 #include "Server.hpp"
 
-extern Db g_db;
-void printErrorMsg(const char *msg) {
-	std::cerr << "Error : " << msg << '\n';
-	exit(1);
-}
 Server::Server(int port_, std::string password_, Channel& Ref) : _password(password_), _channel(Ref)
 {
 	_server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (_server_socket == -1)
-    	printErrorMsg("Socket()");
-    
+		exit(-1);
 	setsockopt(_server_socket, SOL_SOCKET, SO_REUSEADDR, 0, 0);
   	memset(&_server_addr, 0, sizeof(sockaddr_in));
   	_server_addr.sin_family = AF_INET;
@@ -19,10 +13,10 @@ Server::Server(int port_, std::string password_, Channel& Ref) : _password(passw
   	
 	if (bind(_server_socket, (struct sockaddr *)(&_server_addr),
 		       sizeof(sockaddr)) == -1)
-    	printErrorMsg("Bind()");
+    	exit(-1);
   	
 	if (listen(_server_socket, 42) == -1)
-    	printErrorMsg("Listen()");
+    	exit(-1);
 }
 
 Server::~Server() {

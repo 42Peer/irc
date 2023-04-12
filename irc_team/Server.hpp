@@ -22,6 +22,7 @@ class Server {
 
 		std::string	getUserName(int);
 		void	removeMapData(int);
+		Db	g_db;
 		// int	getUserFd(std::string);
 
   /*

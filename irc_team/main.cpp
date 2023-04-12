@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
   // int port = atoi(argv[1]);
   std::string pass = argv[2];
   Channel c;
-  Server serv(atoi(argv[1]), argv[2], c);
+  Server serv(atoi(argv[1]), pass, c);
   Handler handler(serv);
   handler.run();
 

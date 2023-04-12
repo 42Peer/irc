@@ -193,20 +193,20 @@ int checkCommand(std::string cmd)
 
 // int main(void)
 // {
-//   	parseData("/join #123,#1234,#4321");
-//     parseData("/asdf");
-//     parseData("/pArt      ");
-//     parseData("/jOin");
-//     parseData("/privMsg jujeon,dllee : hi");
-//     parseData("/privMsg jujeon:hidasjifaji:sdjifsdfij");
-//     parseData("/privMsg jujeon:hidasjifaji :sdjifsdfij");
-//     parseData("/privMsg jujeon            :hi");
-//     parseData("/privMsg jujeon            :hi          ");
-//     parseData("/privMsg jujeon            :hi          ");
-//     parseData("/part");
-//     parseData("/part :jujeon");
-//     parseData("/part #123");
-//     parseData("/part #123,#2222");
-//     parseData("/part #123 , #2222");
+// 	std::cout << parseData("/join #123,#1234,#4321").first << '\n';
+//     // parseData("/asdf");
+//     // parseData("/pArt      ");
+//     // parseData("/jOin");
+//     // parseData("/privMsg jujeon,dllee : hi");
+//     // parseData("/privMsg jujeon:hidasjifaji:sdjifsdfij");
+//     // parseData("/privMsg jujeon:hidasjifaji :sdjifsdfij");
+//     // parseData("/privMsg jujeon            :hi");
+//     // parseData("/privMsg jujeon            :hi          ");
+//     // parseData("/privMsg jujeon            :hi          ");
+//     // parseData("/part");
+//     // parseData("/part :jujeon");
+//     // parseData("/part #123");
+//     // parseData("/part #123,#2222");
+//     // parseData("/part #123 , #2222");
 //     return (0);
 // }

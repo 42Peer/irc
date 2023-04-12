@@ -7,8 +7,8 @@ class Channel{
 	public :
 		// Channel();
 		// ~Channel();
-		void	setList(std::string, std::string);
-		std::vector<std::string> getUserList(std::string);
+		bool	setList(std::string, std::string);
+		std::vector<std::string>& getUserList(std::string);
 		void	changeNameFromChannelList(std::string, std::string, std::string);
 		void	removeUserFromChannel(std::string, std::string);
 		bool	isExistInChannel(std::string, std::string);

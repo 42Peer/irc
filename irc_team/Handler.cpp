@@ -1,4 +1,7 @@
 #include "Handler.hpp"
+#include "Command.hpp"
+#include "Parsing.h"
+
 void printErrorMsg(const char *msg) {
 	std::cerr << "Error : " << msg << '\n';
 	exit(1);
@@ -69,9 +72,19 @@ void Handler::run(void) {
                     wrapEvSet(_event_list, new_client, EVFILT_READ, EV_ADD | EV_ENABLE);
                     wrapEvSet(_event_list, new_client, EVFILT_WRITE, EV_ADD | EV_ENABLE);
 
-                    _msgMap[new_client] = "PASSWORD : ";
                     // this->_server.setUserInfo(new_client, "TESTNAME", "TESTNAME");
-                    std::cout << "# new client! : " << new_client << '\n';
+                    std::cout << "# new client attempting... : " << new_client << '\n';
+
+                    ////////////////////////////////////////////////////
+                    // 새 유저 가입 절차
+
+                    // fd, flag (1 -> 2 -> 3)
+                    // std::map<int, int> user_ident_phase;
+                    // user_ident_phase[new_client] = 1;
+                    
+                    ////////////////////////////////////////////////////
+
+                    _msgMap[new_client] = "PASSWORD : ";
                 }
                 // 클라이언트면,
                 else
@@ -94,12 +107,14 @@ void Handler::run(void) {
 
 
                     ret = ret.substr(0, ret.size() - 1);
+					// ret.append("\r\n");
                     std::cout << "# pass : _" << ret << "_\n";
 
                     if(ret == "1234")
                         std::cout << "# correct : _" << ret << "_\n";
 
-
+					std::pair<int, std::vector<std::string> > testttttt = parseData(ret);
+					figureCommand(_monitor[i].ident, testttttt);
                     _msgMap[_monitor[i].ident] = "";
 
 
@@ -134,6 +149,23 @@ void Handler::run(void) {
             // writeFilter가 있는 애들 ( 클라이언트 )
             else if (_monitor[i].filter == EVFILT_WRITE)
             {
+                /////////////////////////////////////////////
+                // 새 유저 가입
+                /*
+                if (user_ident_phase[_monitor[i].ident] < 3)
+                {
+                    if (user_ident_phase[_monitor[i].ident] == 1)
+                        _msgMap[_monitor[j].ident] = "Password : ";
+                    if (user_ident_phase[_monitor[i].ident] == 2)
+                        _msgMap[_monitor[j].ident] = "Nickname : ";
+                    if (user_ident_phase[_monitor[i].ident] == 3)
+                        _msgMap[_monitor[j].ident] = "Username : ";
+                }
+                */
+                
+                //////////////////////////////////////////////
+
+
                 for (unsigned long j = 0; j < _msgMap.size(); ++j)
                 {
                     if (_msgMap[_monitor[j].ident] == "")
@@ -154,39 +186,40 @@ Server& Handler::getServer(void)
 	return (_server);
 }
 
-// void figureCommand(std::pair<int, std::vector<std::string> > data)
-// {
-// 	if (data.first < 0)
-// 		;
-// 	else
-// 	{
-// 		Command* cmd;
-// 		switch (data.first)
-// 		{
-// 			case MESSAGE :
-// 				cmd = new Message();
-// 				msg.run(data.second);
-// 				break;
-// 			case JOIN :
-
-// 				break;
-// 			case NICK :
-
-// 				break;
-// 			case QUIT :
-
-// 				break;
-// 			case PRIVMSG :
-
-// 				break;
-// 			case KICK :
-
-// 				break;
-// 			case PART :
-
-// 				break;
-// 			default :
-// 				; /* somthing wrong */
-// 		}
-// 	}
-// }
+void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> >& data)
+{
+	if (data.first < 0)
+		;
+	else
+	{
+		Command* cmd = NULL;
+		switch (data.first)
+		{
+			case MESSAGE :
+				cmd = new Message(*this); 
+				break;
+			case JOIN :
+				cmd = new Join(*this); 
+				break;
+			case NICK :
+				cmd = new Nick(*this); 
+				break;
+			case QUIT :
+				cmd = new Quit(*this); 
+				break;
+			case PRIVMSG :
+				cmd = new Privmsg(*this); 
+				break;
+			case KICK :
+				cmd = new Kick(*this); 
+				break;
+			case PART :
+				cmd = new Part(*this);
+				break;
+			default :
+				;
+			cmd->run(fd, data.second);
+			// delete cmd; /* somthing wrong */
+		}
+	}
+}
