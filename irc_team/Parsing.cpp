@@ -185,7 +185,10 @@ int checkCommand(std::string cmd)
 	if (cmd == "/quit")
 		return (QUIT);
 	if (cmd == "/privmsg")
+	{
+		std::cout << "Ident\n";
 		return (PRIVMSG);
+	}
 	if (cmd == "/kick")
 		return (KICK);
 	return (INVAILDCMD);

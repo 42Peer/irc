@@ -55,6 +55,7 @@ void Notice::run(int fd, std::vector<std::string> args) {
 void Join::run(int fd, std::vector<std::string> args) {
 	std::vector<std::string>::iterator it = args.begin();
 	std::string name = this->_handler.getServer().getUserName(fd);
+	std::string msg = "JOIN DONE";
 	while (it != args.end())
 	{
 		if (this->_handler.getServer().getChannelRef().setList(*it, name))
@@ -62,6 +63,8 @@ void Join::run(int fd, std::vector<std::string> args) {
 		this->_handler.getServer().g_db.addChannelUser(this->_handler.getServer().g_db.getUserTable().getUser(name), *it);
 		++it;
 	}
+	std::cout << "TEST\n";
+		send(fd, msg.c_str(), strlen(msg.c_str()), 0);
 }
 
 void Nick::run(int fd, std::vector<std::string> args) {
@@ -113,13 +116,14 @@ void Quit::run(int fd, std::vector<std::string> args) {
 void Privmsg::run(int fd, std::vector<std::string> args) {
 	(void) fd;
 	std::vector<std::string>::iterator it = args.begin();
-
+	std::string msg = "Wrong\n";
+	std::cout << "DOon\n";
 	while(it != args.end() - 1)
 	{
 		if(this->_handler.getServer().g_db.getUserTable().isExist(*it))	
 			send(this->_handler.getServer().g_db.getUserTable().getUser(*it).fd, args.back().c_str(), strlen(args.back().c_str()), 0); 
-		// else /* error msg */
-			// send(fd, "Erro")
+		else /* error msg */
+			send(fd, msg.c_str(), strlen(msg.c_str()), 0);
 		++it;
 	}
 }

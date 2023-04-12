@@ -29,7 +29,6 @@ void Handler::run(void) {
 
     int evt;
     while (true) {
-        sleep(1);
         evt = kevent(_kq, &_event_list[0], _event_list.size(), _monitor, 8, NULL);
         if (evt == -1)
             printErrorMsg("evt()");
@@ -94,7 +93,7 @@ void Handler::run(void) {
 					testsetst.channel_list = temp_v;
 					this->_server.g_db.addUser(testsetst);
 					this->_server.setMapData(new_client, temp_name);
-                    _msgMap[new_client] = "PASSWORD : ";
+                    // _msgMap[new_client] = "PASSWORD : ";
                 }
                 // 클라이언트면,
                 else
@@ -118,14 +117,14 @@ void Handler::run(void) {
 
                     ret = ret.substr(0, ret.size() - 1);
 					// ret.append("\r\n");
-                    std::cout << "# pass : _" << ret << "_\n";
+                    // std::cout << "# pass : _" << ret << "_\n";
 
-                    if(ret == "1234")
-                        std::cout << "# correct : _" << ret << "_\n";
+                    // if(ret == "1234")
+                        // std::cout << "# correct : _" << ret << "_\n";
 
 					std::pair<int, std::vector<std::string> > testttttt = parseData(ret);
 					figureCommand(_monitor[i].ident, testttttt);
-                    _msgMap[_monitor[i].ident] = "";
+                    // _msgMap[_monitor[i].ident] = "";
 
 
 
@@ -202,6 +201,7 @@ void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> >& d
 		;
 	else
 	{
+		std::cout << "TEST\n";
 		Command* cmd = NULL;
 		switch (data.first)
 		{
@@ -228,8 +228,8 @@ void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> >& d
 				break;
 			default :
 				;
-			cmd->run(fd, data.second);
 			// delete cmd; /* somthing wrong */
 		}
+		cmd->run(fd, data.second);
 	}
 }
