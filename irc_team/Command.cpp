@@ -7,10 +7,12 @@ void Message::run(int fd, std::vector<std::string> args) {
 	struct s_user_info user_data;
 	std::string name;
 	name = this->_handler.getServer().getUserName(fd);
-    std::string test = this->_handler.getServer().g_db.getUserTable().getUser(name).getChannelList();
+    user_data = this->_handler.getServer().g_db.getUserTable().getUser(name);
+    std::string test = this->_handler.getServer().g_db.getUserTable().getChannelList(user_data);
     std::vector<std::string> user_table = this->_handler.getServer().g_db.getCorrectChannel(test).getUserList();
+    // will be changed .
     for (size_t i = 0; i < user_table.size(); ++i) {
-
+        std::cout << user_table[i] << "\n";
     }
 }
 
