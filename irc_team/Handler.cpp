@@ -1,6 +1,7 @@
 #include "Handler.hpp"
 #include "Command.hpp"
 #include "Parsing.h"
+#include "userStruct.h"
 
 void printErrorMsg(const char *msg) {
 	std::cerr << "Error : " << msg << '\n';
@@ -83,7 +84,16 @@ void Handler::run(void) {
                     // user_ident_phase[new_client] = 1;
                     
                     ////////////////////////////////////////////////////
-
+					std::string temp_name = "TEST";
+					temp_name.append(std::to_string(new_client));
+					struct s_user_info testsetst;
+					std::vector<std::string> temp_v;
+					testsetst.fd = new_client;
+					testsetst.name = temp_name;
+					testsetst.nick = temp_name;
+					testsetst.channel_list = temp_v;
+					this->_server.g_db.addUser(testsetst);
+					this->_server.setMapData(new_client, temp_name);
                     _msgMap[new_client] = "PASSWORD : ";
                 }
                 // 클라이언트면,
