@@ -144,7 +144,7 @@ void Handler::makeProtocol(int fd)
 
         if (_fd_authorized[fd] == false)
         {
-            auth(cmd, fd);
+            new_client_regi(cmd, fd);
         }
         else
         {
@@ -152,12 +152,9 @@ void Handler::makeProtocol(int fd)
             figureCommand(fd, testttttt);
         }
     }
-    // runCmd() => 채널에 보낸건지 아닌지 ,특정 대상인지 체크해서
-    // 해당 _msgMap[result] = _msgMap[_monitor[i[].ident].substr(0, _msgMap[_monitor[i].ident].find("\r\n"));
-    // _msgMap[_monitor[i].ident] = _msgMap[_monitor[i].ident].substr(_msgMap[_monitor[i].ident].find("\r\n"));
 }
 
-void Handler::auth(std::string ret, int fd)
+void Handler::new_client_regi(std::string ret, int fd)
 {
     if (ret == "")
         return;
@@ -184,19 +181,21 @@ void Handler::auth(std::string ret, int fd)
         }
     }
 
-    if (vec[0] == "NICK" && _before_auth[fd].nick == "")
+    if (vec[0] == "NICK" && _before_auth[fd].nick == "" && _before_auth[fd].pass.size() > 0)
     {
         _before_auth[fd].nick = vec[1];
     }
-    if (vec[0] == "USER" && _before_auth[fd].name == "")
+    if (vec[0] == "USER" && _before_auth[fd].name == "" && _before_auth[fd].pass.size() > 0)
     {
         if (vec.size() < 4)
         {
             std::cout << "not enough args (>= 4)\n";
             return;
         }
-        // USER dohyun 0 * realdohyun
         _before_auth[fd].name = vec[1] + " " + vec[4];
+    }
+    if (_fd_authorized[fd] == false && _before_auth[fd].name.size() > 0 && _before_auth[fd].nick.size() > 0)
+    {
         _fd_authorized[fd] = true;
         this->_server.g_db.addUser(_before_auth[fd]);
         this->_server.setMapData(fd, _before_auth[fd].nick);
