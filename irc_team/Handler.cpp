@@ -89,7 +89,6 @@ void Handler::run(void)
                 {
                     if (servReceive(_monitor[i].ident))
                     {
-                        std::cout << "RECV" << std::endl;
                         makeProtocol(_monitor[i].ident);
                     }
                 }
@@ -98,8 +97,8 @@ void Handler::run(void)
             {
                 for (unsigned long j = 0; j < _msgMap.size(); ++j)
                 {
-                    // if (_fd_authorized[_monitor[j].ident] == true)
-                    //     return;
+                    if (_fd_authorized[_monitor[j].ident] == false)
+                        continue;
                     if (_msgMap[_monitor[j].ident] == "")
                         continue;
 
@@ -127,7 +126,7 @@ int Handler::servReceive(int fd)
         return false;
 
     buf[buf_len] = '\0';
- 
+
     _msgMap[fd] += std::string(buf);
 
     return true;
