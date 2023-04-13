@@ -42,6 +42,7 @@ class Server {
 
 	private:
 		std::map<int, std::string> _fd_name_map;
+        std::map<int, std::string> _fd_message;
 		// std::map<std::string, int> _name_fd_map;
 
 		std::string _password;
