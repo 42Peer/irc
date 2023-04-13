@@ -1,14 +1,14 @@
-#include "Server.hpp"
-#include <cstdlib>
-#include <string>
+#include "Handler.hpp"
+#include "Db.hpp"
+
 
 bool isArgv(const char *argv) {
   for (int i = 0; argv[i]; ++i) {
     if (!(argv[i] >= '0' && argv[i] <= '9'))
       return (false);
   }
-  int num;
-  if (num = atoi(argv)) {
+  int num = atoi(argv);
+  if (num) {
     if (!(num >= 0 && num <= 65535)) {
       return (false);
     }
@@ -22,8 +22,11 @@ int main(int argc, char **argv) {
   }
   if (!isArgv(argv[1]))
     return (1);
-  int port = atoi(argv[1]);
+  // int port = atoi(argv[1]);
   std::string pass = argv[2];
-  Server serv(atoi(argv[1]), argv[2]);
+  Channel c;
+  Server serv(atoi(argv[1]), pass, c);
+  Handler handler(serv);
+  handler.run();
   return EXIT_SUCCESS;
 }

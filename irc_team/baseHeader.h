@@ -1,7 +1,9 @@
-#ifndef __ETC_HPP_
-#define __ETC_HPP_
+#ifndef BASEHEADER_H
+# define BASEHEADER_H
 
+#include <cstdlib>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <fcntl.h>
 #include <iostream>
 #include <map>
@@ -17,17 +19,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
+#include <netinet/in.h>
 
-typedef struct s_user_data {
-  //   int socket_id;
-  std::string user_name;
-  std::string nick_name;
-  std::vector<std::string> channel_lists;
-  bool validation;
-} t_user_data;
-
-void printErrorMsg(const char *msg) {
-  std::cerr << "Error : " << msg << '\n';
-  exit(1);
-}
-#endif /* __ETC_HPP_ */
+#endif /* BASEHEADER_H */
