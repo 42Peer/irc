@@ -22,6 +22,8 @@ private:
   void callPaser(std::string);
   void figureCommand(int, std::pair<int, std::vector<std::string> >&);
   void auth(std::string, int);
+  int servReceive(int);
+  void makeProtocol(int);
 };
 
 

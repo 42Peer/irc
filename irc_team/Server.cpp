@@ -2,21 +2,29 @@
 
 Server::Server(int port_, std::string password_, Channel& Ref) : _password(password_), _channel(Ref)
 {
-	_server_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (_server_socket == -1)
-		exit(-1);
-	setsockopt(_server_socket, SOL_SOCKET, SO_REUSEADDR, 0, 0);
+	if ((_server_socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
+	{
+		std::cerr << "socket err\n";
+		exit(1);
+	}
+	setsockopt( _server_socket, SOL_SOCKET, SO_REUSEADDR, 0, 0);
+
   	memset(&_server_addr, 0, sizeof(sockaddr_in));
   	_server_addr.sin_family = AF_INET;
   	_server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
   	_server_addr.sin_port = htons(port_);
   	
-	if (bind(_server_socket, (struct sockaddr *)(&_server_addr),
-		       sizeof(sockaddr)) == -1)
-    	exit(-1);
-  	
+	if (bind(_server_socket, (struct sockaddr *)(&_server_addr), sizeof(sockaddr)) == -1)
+	{
+		std::cerr << "bind err\n";
+		exit(1);
+	}
+
 	if (listen(_server_socket, 42) == -1)
-    	exit(-1);
+    	{
+		std::cerr << "listen err\n";
+		exit(1);
+	}
 }
 
 Server::~Server() {

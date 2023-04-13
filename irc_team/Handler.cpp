@@ -10,7 +10,6 @@ void printErrorMsg(const char *msg)
 }
 void wrapEvSet(std::vector<struct kevent> &list, int ident, int filter, int flag)
 {
-    // We don't know parameter udata when we use
     struct kevent new_event;
     EV_SET(&new_event, ident, filter, flag, 0, 0, 0);
     list.push_back(new_event);
@@ -28,7 +27,7 @@ Handler::~Handler() {}
 
 void Handler::run(void)
 {
-    std::cout << "socket server running...\n";
+    std::cout << "socket server running... fd : " << _server.getServerSocket() << "\n";
     std::map<int, std::string> tmp_data;
 
     int evt;
@@ -54,29 +53,25 @@ void Handler::run(void)
                 else
                     std::cerr << "Client error\n";
             }
-            // readFilter가 있는 애들 ( 서버,  클라이언트 )
             else if (_monitor[i].filter == EVFILT_READ)
             {
-                // 서버면,
                 if (_monitor[i].ident == _server.getServerSocket())
                 {
-                    // 새 소켓 만들고
                     socklen_t sock_len = sizeof(sockaddr_in);
                     int new_client = accept(_server.getServerSocket(), (struct sockaddr *)(&_server.getServerAddr()), &sock_len);
                     if (new_client == -1)
+                    {
+                        std::cerr << "accept err\n";
                         continue;
-                    // 옵션 주고
+                    }
+                    std::cout << "# new client fd : " << new_client << '\n';
+
                     setsockopt(new_client, SOL_SOCKET, SO_REUSEADDR, 0, 0);
-                    // 논 블록 소켓으로 설정
                     if (fcntl(new_client, F_SETFL, O_NONBLOCK) == -1)
                         printErrorMsg("fcntl()");
 
-                    // 새 클라이언트가 READ, WRITE 이벤트 가능하게 설정
                     wrapEvSet(_event_list, new_client, EVFILT_READ, EV_ADD | EV_ENABLE);
                     wrapEvSet(_event_list, new_client, EVFILT_WRITE, EV_ADD | EV_ENABLE);
-
-                    // this->_server.setUserInfo(new_client, "TESTNAME", "TESTNAME");
-                    std::cout << "# new client attempting... : " << new_client << '\n';
 
                     // create new user
                     struct s_user_info new_client_info;
@@ -89,39 +84,13 @@ void Handler::run(void)
 
                     _fd_authorized[new_client] = false;
                     _before_auth[new_client] = new_client_info;
-
-                    // this->_server.g_db.addUser(testsetst);
-                    // this->_server.setMapData(new_client, temp_name);
                 }
                 else
                 {
-                    std::string ret;
-                    char buf[1024];
-                    int r;
-
-                    memset(buf, 0, sizeof(buf));
-                    // r = read(_monitor[i].ident, buf, 1024); 
-                    // buf[r] = 0;
-                    // _msgMap[_monitor[i].ident] += buf;
-                    // _msgMap[_monitor[i].ident].find("\r\n") != std::string::npos ? runCmd();
-                    // runCmd() => 채널에 보낸건지 아닌지 ,특정 대상인지 체크해서 
-                    // 해당 _msgMap[result] = _msgMap[_monitor[i[].ident].substr(0, _msgMap[_monitor[i].ident].find("\r\n"));
-                    // _msgMap[_monitor[i].ident] = _msgMap[_monitor[i].ident].substr(_msgMap[_monitor[i].ident].find("\r\n"));
-                    while ((r = read(_monitor[i].ident, buf, 1024)) > 0)
-                    {
-                        buf[r] = 0;
-                        ret += buf;
-                    }
-                    ret = ret.substr(0, ret.size() - 1);
-
-                    if (_fd_authorized[_monitor[i].ident] == false)
-                        auth(ret, i);
-
-                    std::pair<int, std::vector<std::string> > testttttt = parseData(ret);
-                    figureCommand(_monitor[i].ident, testttttt);
+                    if (servReceive(_monitor[i].ident))
+                        makeProtocol(_monitor[i].ident);
                 }
             }
-            // writeFilter가 있는 애들 ( 클라이언트 )
             else if (_monitor[i].filter == EVFILT_WRITE)
             {
                 for (unsigned long j = 0; j < _msgMap.size(); ++j)
@@ -139,11 +108,53 @@ void Handler::run(void)
     }
 }
 
-void Handler::auth(std::string ret, int i)
+int Handler::servReceive(int fd)
+{
+    std::string ret;
+    char buf[1024];
+    int buf_len;
+
+    memset(buf, 0, sizeof(buf));
+    buf_len = recv(fd, (void *)buf, 1024, MSG_DONTWAIT);
+    if (buf_len == 0)
+        return 1;
+    buf[buf_len] = '\0';
+
+    _msgMap[fd] += std::string(buf);
+
+    return 0;
+}
+
+void Handler::makeProtocol(int fd)
+{
+
+    size_t delimiter;
+	while ((delimiter = std::min(_msgMap[fd].find('\r'), _msgMap[fd].find('\n'))) != std::string::npos)
+    {
+        std::string cmd = _msgMap[fd].substr(0, delimiter);
+        _msgMap[fd].erase(0, delimiter + 1);
+        if (cmd == "") continue;
+
+        if (_fd_authorized[fd] == false)
+        {
+            auth(cmd, fd);
+        }
+        else
+        {
+            std::pair<int, std::vector<std::string> > testttttt = parseData(cmd);
+            figureCommand(fd, testttttt);
+        }
+    }
+    // runCmd() => 채널에 보낸건지 아닌지 ,특정 대상인지 체크해서
+    // 해당 _msgMap[result] = _msgMap[_monitor[i[].ident].substr(0, _msgMap[_monitor[i].ident].find("\r\n"));
+    // _msgMap[_monitor[i].ident] = _msgMap[_monitor[i].ident].substr(_msgMap[_monitor[i].ident].find("\r\n"));
+}
+
+void Handler::auth(std::string ret, int fd)
 {
     if (ret == "")
-        return ;
-    ////////////////////////////////////////////////////
+        return;
+
     // temp parser
     std::string buff;
     std::vector<std::string> vec;
@@ -155,38 +166,34 @@ void Handler::auth(std::string ret, int i)
     if (vec.size() < 2)
     {
         std::cout << "not enough args (>= 2)\n";
-        return ;
+        return;
     }
 
-    /////////////////////////////////////////////////////
-
-    if (vec[0] == "PASS" && _before_auth[_monitor[i].ident].pass == "")
+    if (vec[0] == "PASS" && _before_auth[fd].pass == "")
     {
         if (_server.getServerPassword() == vec[1])
         {
-            // send(_monitor[i].ident, "# pass passed", 13, 0);
-            _before_auth[_monitor[i].ident].pass = vec[1];
+            _before_auth[fd].pass = vec[1];
         }
     }
 
-    if (vec[0] == "NICK" && _before_auth[_monitor[i].ident].nick == "")
+    if (vec[0] == "NICK" && _before_auth[fd].nick == "")
     {
-        // NICK dohyulee
-        // send(_monitor[i].ident, "# nick passed", 13, 0);
-        _before_auth[_monitor[i].ident].nick = vec[1];
+        _before_auth[fd].nick = vec[1];
     }
-    if (vec[0] == "USER" && _before_auth[_monitor[i].ident].name == "")
+    if (vec[0] == "USER" && _before_auth[fd].name == "")
     {
         if (vec.size() < 4)
         {
             std::cout << "not enough args (>= 4)\n";
-            return ;
+            return;
         }
         // USER dohyun 0 * realdohyun
-            _before_auth[_monitor[i].ident].name = vec[1] + " " + vec[4];
-            _fd_authorized[_monitor[i].ident] = true;
-            _server.g_db.addUser(_before_auth[_monitor[i].ident]);
-            send(_monitor[i].ident, "# Welcome!\n", 13, 0);
+        _before_auth[fd].name = vec[1] + " " + vec[4];
+        _fd_authorized[fd] = true;
+        this->_server.g_db.addUser(_before_auth[fd]);
+        this->_server.setMapData(fd, _before_auth[fd].nick);
+        send(fd, "# Welcome!\n", 13, 0);
     }
 }
 
