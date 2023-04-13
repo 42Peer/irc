@@ -18,7 +18,7 @@
     메세지가 있는 커맨드의 경우 v.back()으로 바로 메세지에 접근해서 메세지인지 확인해야함.
     만약 옵셔널인자가 있는경우 v.size()로 먼저 인자의 갯수를 보고 메세지가 있는지 판단한다. 
 */
-Command::Command(Handler &Ref_) : _handler(Ref_) {};
+Command::Command(Handler &Ref_) : _handler(Ref_) {}
 
 Command::~Command(){}
 
