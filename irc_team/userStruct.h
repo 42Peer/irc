@@ -8,9 +8,10 @@
 #include <vector>
 
 struct s_user_info {
+  int fd;
+  std::string pass;
   std::string nick;
   std::string name;
-  int fd;
   std::vector<std::string> channel_list;
 };
 

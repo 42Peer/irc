@@ -61,3 +61,5 @@ void	Server::removeMapData(int fd) {
 }
 
 struct sockaddr_in &Server::getServerAddr(void) { return _server_addr; }
+
+std::string &Server::getServerPassword(void) { return _password; }

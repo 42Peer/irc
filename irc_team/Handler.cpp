@@ -3,18 +3,21 @@
 #include "Parsing.h"
 #include "userStruct.h"
 
-void printErrorMsg(const char *msg) {
-	std::cerr << "Error : " << msg << '\n';
-	exit(1);
+void printErrorMsg(const char *msg)
+{
+    std::cerr << "Error : " << msg << '\n';
+    exit(1);
 }
-void wrapEvSet(std::vector<struct kevent>& list, int ident, int filter, int flag) {
+void wrapEvSet(std::vector<struct kevent> &list, int ident, int filter, int flag)
+{
     // We don't know parameter udata when we use
-	struct kevent new_event;
-	EV_SET(&new_event, ident, filter, flag, 0, 0, 0);
-	list.push_back(new_event);
+    struct kevent new_event;
+    EV_SET(&new_event, ident, filter, flag, 0, 0, 0);
+    list.push_back(new_event);
 }
 
-Handler::Handler(Server& server_): _server(server_) {
+Handler::Handler(Server &server_) : _server(server_)
+{
     _kq = kqueue();
     if (_kq == -1)
         printErrorMsg("kqueue()");
@@ -23,13 +26,14 @@ Handler::Handler(Server& server_): _server(server_) {
 
 Handler::~Handler() {}
 
-
-void Handler::run(void) {
+void Handler::run(void)
+{
     std::cout << "socket server running...\n";
     std::map<int, std::string> tmp_data;
 
     int evt;
-    while (true) {
+    while (true)
+    {
         evt = kevent(_kq, &_event_list[0], _event_list.size(), _monitor, 8, NULL);
         if (evt == -1)
             printErrorMsg("evt()");
@@ -50,7 +54,7 @@ void Handler::run(void) {
                 else
                     std::cerr << "Client error\n";
             }
-            // readFilter가 있는 애들 ( 서버, 클라이언트 )
+            // readFilter가 있는 애들 ( 서버,  클라이언트 )
             else if (_monitor[i].filter == EVFILT_READ)
             {
                 // 서버면,
@@ -58,7 +62,7 @@ void Handler::run(void) {
                 {
                     // 새 소켓 만들고
                     socklen_t sock_len = sizeof(sockaddr_in);
-                    int new_client = accept(_server.getServerSocket(), (struct sockaddr*)(&_server.getServerAddr()), &sock_len);
+                    int new_client = accept(_server.getServerSocket(), (struct sockaddr *)(&_server.getServerAddr()), &sock_len);
                     if (new_client == -1)
                         continue;
                     // 옵션 주고
@@ -74,27 +78,21 @@ void Handler::run(void) {
                     // this->_server.setUserInfo(new_client, "TESTNAME", "TESTNAME");
                     std::cout << "# new client attempting... : " << new_client << '\n';
 
-                    ////////////////////////////////////////////////////
-                    // 새 유저 가입 절차
+                    // create new user
+                    struct s_user_info new_client_info;
+                    std::vector<std::string> temp_ch;
+                    new_client_info.fd = new_client;
+                    new_client_info.pass = "";
+                    new_client_info.name = "";
+                    new_client_info.nick = "";
+                    new_client_info.channel_list = temp_ch;
 
-                    // fd, flag (1 -> 2 -> 3)
-                    // std::map<int, int> user_ident_phase;
-                    // user_ident_phase[new_client] = 1;
-                    
-                    ////////////////////////////////////////////////////
-					std::string temp_name = "TEST";
-					temp_name.append(std::to_string(new_client));
-					struct s_user_info testsetst;
-					std::vector<std::string> temp_v;
-					testsetst.fd = new_client;
-					testsetst.name = temp_name;
-					testsetst.nick = temp_name;
-					testsetst.channel_list = temp_v;
-					this->_server.g_db.addUser(testsetst);
-					this->_server.setMapData(new_client, temp_name);
-                    // _msgMap[new_client] = "PASSWORD : ";
+                    _fd_authorized[new_client] = false;
+                    _before_auth[new_client] = new_client_info;
+
+                    // this->_server.g_db.addUser(testsetst);
+                    // this->_server.setMapData(new_client, temp_name);
                 }
-                // 클라이언트면,
                 else
                 {
                     std::string ret;
@@ -102,76 +100,30 @@ void Handler::run(void) {
                     int r;
 
                     memset(buf, 0, sizeof(buf));
-                    
+                    // r = read(_monitor[i].ident, buf, 1024); 
+                    // buf[r] = 0;
+                    // _msgMap[_monitor[i].ident] += buf;
+                    // _msgMap[_monitor[i].ident].find("\r\n") != std::string::npos ? runCmd();
+                    // runCmd() => 채널에 보낸건지 아닌지 ,특정 대상인지 체크해서 
+                    // 해당 _msgMap[result] = _msgMap[_monitor[i[].ident].substr(0, _msgMap[_monitor[i].ident].find("\r\n"));
+                    // _msgMap[_monitor[i].ident] = _msgMap[_monitor[i].ident].substr(_msgMap[_monitor[i].ident].find("\r\n"));
                     while ((r = read(_monitor[i].ident, buf, 1024)) > 0)
                     {
-                        r = read(_monitor[i].ident, buf, 1024);
                         buf[r] = 0;
                         ret += buf;
                     }
-                    // // pass가 아니면,
-                    // _msgMap[_monitor[i].ident] = ret;
-//                    if (tmp != "")
-//                    ret = ret.substr(0, ret.size() - 1);
-					// ret.append("\r\n");
-                    // std::cout << "# pass : _" << ret << "_\n";
+                    ret = ret.substr(0, ret.size() - 1);
 
-                    // if(ret == "1234")
-                        // std::cout << "# correct : _" << ret << "_\n";
+                    if (_fd_authorized[_monitor[i].ident] == false)
+                        auth(ret, i);
 
-					std::pair<int, std::vector<std::string> > testttttt = parseData(ret);
-					figureCommand(_monitor[i].ident, testttttt);
-                    // _msgMap[_monitor[i].ident] = "";
-
-
-
-                    // memset(buf, 0, sizeof(buf));
-                    // // write(new_client, "PASSWORD: ", 11);
-                    // read(new_client, buf, sizeof(buf));
-                    // std::string pass(buf);
-                    // pass = pass.substr(0, pass.size() - 1);
-                    // std::cout << "PASS: " << pass << std::endl;
-                    // if (pass == "") {
-                    //     // write(new_client, "USER NAME: ", 12);
-                    //     read(new_client, buf, sizeof(buf));
-                    //     std::string tmp(buf);
-                    //     tmp = pass.substr(0, tmp.size() - 1);
-                    //     _msgMap[new_client] = tmp;
-                    // }
-                    // else {
-                    //     std::cout << "[Error] Error!!!" << std::endl;
-                    // }
-                    // std::cout << "Success: " << new_client << " : " << _msgMap[new_client] << std::endl;
-
-
-                    // map<int,vector<string>> = parsing(buf);
-                    // int cmd_type = map.first;
-                    // std::vector<std::string>> arguments = map.second;
-                    // cmdExecute(cmd_type, arguments);
-                    // func name == write ,switchCmd(); <- user , channel,
-                    // run_cmd();
+                    std::pair<int, std::vector<std::string> > testttttt = parseData(ret);
+                    figureCommand(_monitor[i].ident, testttttt);
                 }
             }
             // writeFilter가 있는 애들 ( 클라이언트 )
             else if (_monitor[i].filter == EVFILT_WRITE)
             {
-                /////////////////////////////////////////////
-                // 새 유저 가입
-                /*
-                if (user_ident_phase[_monitor[i].ident] < 3)
-                {
-                    if (user_ident_phase[_monitor[i].ident] == 1)
-                        _msgMap[_monitor[j].ident] = "Password : ";
-                    if (user_ident_phase[_monitor[i].ident] == 2)
-                        _msgMap[_monitor[j].ident] = "Nickname : ";
-                    if (user_ident_phase[_monitor[i].ident] == 3)
-                        _msgMap[_monitor[j].ident] = "Username : ";
-                }
-                */
-                
-                //////////////////////////////////////////////
-
-
                 for (unsigned long j = 0; j < _msgMap.size(); ++j)
                 {
                     if (_msgMap[_monitor[j].ident] == "")
@@ -187,46 +139,96 @@ void Handler::run(void) {
     }
 }
 
-Server& Handler::getServer(void)
+void Handler::auth(std::string ret, int i)
 {
-	return (_server);
+    if (ret == "")
+        return ;
+    ////////////////////////////////////////////////////
+    // temp parser
+    std::string buff;
+    std::vector<std::string> vec;
+    std::istringstream ss(ret);
+
+    while (std::getline(ss, buff, ' '))
+        vec.push_back(buff);
+
+    if (vec.size() < 2)
+    {
+        std::cout << "not enough args (>= 2)\n";
+        return ;
+    }
+
+    /////////////////////////////////////////////////////
+
+    if (vec[0] == "PASS" && _before_auth[_monitor[i].ident].pass == "")
+    {
+        if (_server.getServerPassword() == vec[1])
+        {
+            // send(_monitor[i].ident, "# pass passed", 13, 0);
+            _before_auth[_monitor[i].ident].pass = vec[1];
+        }
+    }
+
+    if (vec[0] == "NICK" && _before_auth[_monitor[i].ident].nick == "")
+    {
+        // NICK dohyulee
+        // send(_monitor[i].ident, "# nick passed", 13, 0);
+        _before_auth[_monitor[i].ident].nick = vec[1];
+    }
+    if (vec[0] == "USER" && _before_auth[_monitor[i].ident].name == "")
+    {
+        if (vec.size() < 4)
+        {
+            std::cout << "not enough args (>= 4)\n";
+            return ;
+        }
+        // USER dohyun 0 * realdohyun
+            _before_auth[_monitor[i].ident].name = vec[1] + " " + vec[4];
+            _fd_authorized[_monitor[i].ident] = true;
+            _server.g_db.addUser(_before_auth[_monitor[i].ident]);
+            send(_monitor[i].ident, "# Welcome!\n", 13, 0);
+    }
 }
 
-void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> >& data)
+Server &Handler::getServer(void)
 {
-	if (data.first < 0)
-		;
-	else
-	{
-		std::cout << "TEST\n";
-		Command* cmd = NULL;
-		switch (data.first)
-		{
-			case MESSAGE :
-				cmd = new Message(*this); 
-				break;
-			case JOIN :
-				cmd = new Join(*this); 
-				break;
-			case NICK :
-				cmd = new Nick(*this); 
-				break;
-			case QUIT :
-				cmd = new Quit(*this); 
-				break;
-			case PRIVMSG :
-				cmd = new Privmsg(*this); 
-				break;
-			case KICK :
-				cmd = new Kick(*this); 
-				break;
-			case PART :
-				cmd = new Part(*this);
-				break;
-			default :
-				;
-			// delete cmd; /* somthing wrong */
-		}
-		cmd->run(fd, data.second);
-	}
+    return (_server);
+}
+
+void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &data)
+{
+    if (data.first < 0)
+        ;
+    else
+    {
+        std::cout << "TEST\n";
+        Command *cmd = NULL;
+        switch (data.first)
+        {
+        case MESSAGE:
+            cmd = new Message(*this);
+            break;
+        case JOIN:
+            cmd = new Join(*this);
+            break;
+        case NICK:
+            cmd = new Nick(*this);
+            break;
+        case QUIT:
+            cmd = new Quit(*this);
+            break;
+        case PRIVMSG:
+            cmd = new Privmsg(*this);
+            break;
+        case KICK:
+            cmd = new Kick(*this);
+            break;
+        case PART:
+            cmd = new Part(*this);
+            break;
+        default:;
+            // delete cmd; /* somthing wrong */
+        }
+        cmd->run(fd, data.second);
+    }
 }
