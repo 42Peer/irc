@@ -218,9 +218,6 @@ void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &d
         Command *cmd = NULL;
         switch (data.first)
         {
-        case MESSAGE:
-            cmd = new Message(*this);
-            break;
         case JOIN:
             cmd = new Join(*this);
             break;

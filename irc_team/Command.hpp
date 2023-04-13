@@ -15,12 +15,12 @@ class Command{
 		Handler& _handler;
 };
 
-class Message : public Command {
-	public :
-		Message(Handler& h) : Command(h){};
-		~Message();
-		void run(int, std::vector<std::string>);	
-};
+// class Message : public Command {
+// 	public :
+// 		Message(Handler& h) : Command(h){};
+// 		~Message();
+// 		void run(int, std::vector<std::string>);	
+// };
 
 class Notice : public Command {
 	public :
