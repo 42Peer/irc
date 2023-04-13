@@ -124,7 +124,7 @@ int Handler::servReceive(int fd)
     buf_len = recv(fd, (void *)buf, 1024, MSG_DONTWAIT);
     if (buf_len == 0)
         return false;
-
+    std::cout << buf << "\n";
     buf[buf_len] = '\0';
 
     _msgMap[fd] += std::string(buf);
@@ -134,7 +134,6 @@ int Handler::servReceive(int fd)
 
 void Handler::makeProtocol(int fd)
 {
-
     size_t delimiter;
 	while ((delimiter = std::min(_msgMap[fd].find('\r'), _msgMap[fd].find('\n'))) != std::string::npos)
     {
@@ -201,7 +200,11 @@ void Handler::new_client_regi(std::string ret, int fd)
             _fd_authorized[fd] = true;
             this->_server.g_db.addUser(_before_auth[fd]);
             this->_server.setMapData(fd, _before_auth[fd].nick);
-            send(fd, "# Welcome!\n", 12, 0);
+            std::string tmp;
+            tmp += "001 ";
+            tmp += _before_auth[fd].nick;
+            tmp += " :Welcome!😄\n";
+            send(fd, tmp.c_str(), tmp.size() + 1, 0);
         }
         else
         {
