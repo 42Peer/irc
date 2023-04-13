@@ -10,13 +10,13 @@ Server::Server(int port_, std::string password_, Channel& Ref) : _password(passw
   	_server_addr.sin_family = AF_INET;
   	_server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
   	_server_addr.sin_port = htons(port_);
-  	
 	if (bind(_server_socket, (struct sockaddr *)(&_server_addr),
 		       sizeof(sockaddr)) == -1)
     	exit(-1);
   	
 	if (listen(_server_socket, 42) == -1)
     	exit(-1);
+
 }
 
 Server::~Server() {

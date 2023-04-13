@@ -1,5 +1,5 @@
 CXX			=	c++
-CXXFLAGS	=	-std=c++98 -g3
+CXXFLAGS	=	-std=c++98 -g -fsanitize=address
 SRCS		=	main.cpp \
 				Server.cpp \
  				Handler.cpp \

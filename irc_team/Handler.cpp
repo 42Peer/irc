@@ -26,7 +26,6 @@ Handler::~Handler() {}
 
 void Handler::run(void) {
     std::cout << "socket server running...\n";
-    std::map<int, std::string> tmp_data;
 
     int evt;
     while (true) {
@@ -105,7 +104,7 @@ void Handler::run(void) {
                     
                     while ((r = read(_monitor[i].ident, buf, 1024)) > 0)
                     {
-                        r = read(_monitor[i].ident, buf, 1024);
+//                        r = read(_monitor[i].ident, buf, 1024);
                         buf[r] = 0;
                         ret += buf;
                     }

@@ -82,10 +82,15 @@ public:
     void removeUser(std::string key) { _tables.erase(key); }
 
     void addChannel(struct s_user_info &usr, const std::string &channel_name) {
-        std::vector<std::string>::iterator sitor = _tables[usr.nick].channel_list.begin();
-        for (; sitor != _tables[usr.nick].channel_list.end(); ++sitor)
-            if (*sitor == channel_name)
-                _tables[usr.nick].channel_list.erase(sitor);
+        if (isExist(usr.nick)) {
+            for (size_t i = 0; i < _tables[usr.nick].channel_list.size(); ++i) {
+                if (_tables[usr.nick].channel_list[i] == channel_name) {
+                    _tables[usr.nick].channel_list.erase(
+                            _tables[usr.nick].channel_list.begin() + i
+                            );
+                }
+            }
+        }
         _tables[usr.nick].channel_list.push_back(channel_name);
     }
 
