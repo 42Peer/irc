@@ -88,20 +88,25 @@ void Handler::run(void)
                 else
                 {
                     if (servReceive(_monitor[i].ident))
+                    {
+                        std::cout << "RECV" << std::endl;
                         makeProtocol(_monitor[i].ident);
+                    }
                 }
             }
             else if (_monitor[i].filter == EVFILT_WRITE)
             {
                 for (unsigned long j = 0; j < _msgMap.size(); ++j)
                 {
-                    if (_fd_authorized[_monitor[j].ident] == false)
-                        return;
+                    // if (_fd_authorized[_monitor[j].ident] == true)
+                    //     return;
                     if (_msgMap[_monitor[j].ident] == "")
                         continue;
 
-                    for (std::map<int, std::string>::iterator it = _msgMap.begin(); it != _msgMap.end(); ++it)
+                    for (std::map<int, std::string>::iterator it = _msgMap.begin(); it != _msgMap.end(); ++it){
                         send(it->first, _msgMap[_monitor[j].ident].c_str(), _msgMap[_monitor[j].ident].length() + 1, 1);
+                        std::cout << _msgMap[_monitor[j].ident] << std::endl;
+                    }
 
                     _msgMap[_monitor[j].ident] = "";
                 }
@@ -119,12 +124,13 @@ int Handler::servReceive(int fd)
     memset(buf, 0, sizeof(buf));
     buf_len = recv(fd, (void *)buf, 1024, MSG_DONTWAIT);
     if (buf_len == 0)
-        return 1;
-    buf[buf_len] = '\0';
+        return false;
 
+    buf[buf_len] = '\0';
+ 
     _msgMap[fd] += std::string(buf);
 
-    return 0;
+    return true;
 }
 
 void Handler::makeProtocol(int fd)
@@ -195,7 +201,7 @@ void Handler::auth(std::string ret, int fd)
         _fd_authorized[fd] = true;
         this->_server.g_db.addUser(_before_auth[fd]);
         this->_server.setMapData(fd, _before_auth[fd].nick);
-        send(fd, "# Welcome!\n", 13, 0);
+        send(fd, "# Welcome!\n", 12, 0);
     }
 }
 
