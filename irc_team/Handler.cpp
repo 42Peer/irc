@@ -196,10 +196,18 @@ void Handler::new_client_regi(std::string ret, int fd)
     }
     if (_fd_authorized[fd] == false && _before_auth[fd].name.size() > 0 && _before_auth[fd].nick.size() > 0)
     {
-        _fd_authorized[fd] = true;
-        this->_server.g_db.addUser(_before_auth[fd]);
-        this->_server.setMapData(fd, _before_auth[fd].nick);
-        send(fd, "# Welcome!\n", 12, 0);
+        if (!_server.g_db.isExist(_before_auth[fd].nick))
+        {
+            _fd_authorized[fd] = true;
+            this->_server.g_db.addUser(_before_auth[fd]);
+            this->_server.setMapData(fd, _before_auth[fd].nick);
+            send(fd, "# Welcome!\n", 12, 0);
+        }
+        else
+        {
+            _before_auth[fd].nick = "";
+            send(fd, "Duplicate Nick Name\n", 21 ,0);
+        }
     }
 }
 

@@ -9,7 +9,7 @@
         4. add error rutin
         3. prefix (later)
 */
-Command::Command(Handler &Ref_) : _handler(Ref_) {};
+Command::Command(Handler &Ref_) : _handler(Ref_) {}
 
 std::vector<std::string> getChannelUser(Db &db, std::string name) {
     struct s_user_info user_data;
@@ -17,8 +17,6 @@ std::vector<std::string> getChannelUser(Db &db, std::string name) {
     std::string channel_name = db.getUserTable().getChannelList(user_data);
     return db.getCorrectChannel(channel_name).getUserList();
 }
-
-Command::Command(Handler& Ref_) : _handler(Ref_){}
 
 Command::~Command(){}
 
