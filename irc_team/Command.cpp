@@ -1,5 +1,9 @@
 #include "Command.hpp"
 #include "userStruct.h"
+
+#define ERR476 "476 :Invalid channel name:"
+
+#define MSGJOIN " JOIN :"
 /*
     4/13 thu (branch)updateCommand 
     Need to update :
@@ -18,6 +22,8 @@
     메세지가 있는 커맨드의 경우 v.back()으로 바로 메세지에 접근해서 메세지인지 확인해야함.
     만약 옵셔널인자가 있는경우 v.size()로 먼저 인자의 갯수를 보고 메세지가 있는지 판단한다. 
 */
+
+
 Command::Command(Handler &Ref_) : _handler(Ref_) {}
 
 Command::~Command(){}
@@ -118,33 +124,62 @@ Notice::~Notice(){}
 
 void Join::run(int fd, std::vector<std::string> args) {
 	/*
-		join <channel>[,<channel>]: 
+		join <channel>[,<channel>]: 그런데 우리는 args에 쪼개져서 들어온다
 			jujeon JOIN :#999
 		
-		(1) iterator 로 args 다 돌려서 join 시키면 된다.
+		(1) iterator 로 args 루프문으로 돌리면서 처리할 것이다
 		(2) channel mask 검사
-			(2-1) 없다면 
-		(2) args 채널에 내가 있는지 검사
+			(2-1) 없다면 476 에러 반환
+		(3) 들어가려는 채널에 이미 내가 있는지 검사
+			(3-1) 없다면 채널 들어간다. 
+        (4) 그리고 나와 채널에 속한 사람들에게 메세지 출력
 			
-
- 
 		error case
 			476 jujeon 123 :Invalid channel name		
 			ERR_BADCHANMASK (476) "<channel> :Bad Channel Mask"
 	*/
 
-//     std::vector<std::string>::iterator it = args.begin();
-//     std::string name = this->_handler.getServer().getUserName(fd);
-//     std::string msg = "JOIN DONE";
-//     while (it != args.end()) {
-//         if (this->_handler.getServer().getChannelRef().setList(*it, name))
-//             this->_handler.getServer().g_db.addChannel(*it);
-//         this->_handler.getServer().g_db.addChannelUser(this->_handler.getServer().g_db.getUserTable().getUser(name),
-//                                                        *it);
-//         ++it;
-//     }
-//     std::cout << "TEST\n";
-//     send(fd, msg.c_str(), strlen(msg.c_str()), 0);
+    // std::vector<std::string>::iterator it = args.begin();
+    // std::string name = this->_handler.getServer().getUserName(fd);
+    // std::string msg = "JOIN DONE";
+    // while (it != args.end()) {
+    //     if (this->_handler.getServer().getChannelRef().setList(*it, name))
+    //         this->_handler.getServer().g_db.addChannel(*it);
+    //     this->_handler.getServer().g_db.addChannelUser(this->_handler.getServer().g_db.getUserTable().getUser(name),
+    //                                                    *it);
+    //     ++it;
+    // }
+    // std::cout << "TEST\n";
+    // send(fd, msg.c_str(), strlen(msg.c_str()), 0);
+	
+	std::vector<std::string>::iterator it_channel_name = args.begin();
+	std::vector<std::string>::iterator eit = args.end();
+    std::string buf;
+	for (; it_channel_name != eit; ++it_channel_name) {
+        size_t pos = it_channel_name->find('#');
+        if (pos != std::string::npos) {
+            // 476 :Invalid channel name: 123
+            buf.append(ERR476);
+            buf.append(*it_channel_name);
+            send(fd, buf.c_str(), buf.size(), 0);
+            return ;
+        }
+        else {
+            std::string nick_name = this->_handler.getServer().getUserName(fd);
+            if (this->_handler.getServer().g_db.getCorrectChannel(*it_channel_name).isExist(nick_name) == false) {
+                this->_handler.getServer().g_db.addChannelUser(this->_handler.getServer().g_db.getUserTable().getUser(nick_name), *it_channel_name);
+			    // jujeon JOIN :#999
+                buf.append(nick_name);
+                buf.append(MSGJOIN);
+                buf.append(*it_channel_name);
+                send(fd, buf.c_str(), buf.size(), 0);
+                // chanel, server map 변수 업데이트 해줘야함.
+                // 채널에 속한 유저들 다 send() 해줘야함
+            }
+
+        }
+	}
+
 }
 
 Join::~Join(){}
