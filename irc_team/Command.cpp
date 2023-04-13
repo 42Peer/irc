@@ -1,6 +1,14 @@
 #include "Command.hpp"
 #include "userStruct.h"
-
+/*
+    4/13 thu (branch)updateCommand 
+    Need to update :
+        1. remove message command
+        2. create pass, user command
+        3. update error number
+        4. add error rutin
+        3. prefix (later)
+*/
 Command::Command(Handler &Ref_) : _handler(Ref_) {};
 
 std::vector<std::string> getChannelUser(Db &db, std::string name) {
