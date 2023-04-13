@@ -95,6 +95,8 @@ void Handler::run(void)
             {
                 for (unsigned long j = 0; j < _msgMap.size(); ++j)
                 {
+                    if (_fd_authorized[_monitor[j].ident] == false)
+                        return;
                     if (_msgMap[_monitor[j].ident] == "")
                         continue;
 
@@ -237,5 +239,6 @@ void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &d
             // delete cmd; /* somthing wrong */
         }
         cmd->run(fd, data.second);
+        delete cmd;
     }
 }

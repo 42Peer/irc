@@ -1,7 +1,9 @@
 #include "Command.hpp"
 #include "userStruct.h"
 
-Command::Command(Handler& Ref_) : _handler(Ref_){};
+Command::Command(Handler& Ref_) : _handler(Ref_){}
+
+Command::~Command(){}
 
 void Message::run(int fd, std::vector<std::string> args) {
 	struct s_user_info user_data;
@@ -15,6 +17,8 @@ void Message::run(int fd, std::vector<std::string> args) {
         std::cout << user_table[i] << "\n";
     }
 }
+
+Message::~Message(){}
 
 void Notice::run(int fd, std::vector<std::string> args) {
 	std::vector<std::string>::iterator it = args.begin();
@@ -49,6 +53,8 @@ void Notice::run(int fd, std::vector<std::string> args) {
 	}
 }
 
+Notice::~Notice(){}
+
 void Join::run(int fd, std::vector<std::string> args) {
 	std::vector<std::string>::iterator it = args.begin();
 	std::string name = this->_handler.getServer().getUserName(fd);
@@ -63,6 +69,8 @@ void Join::run(int fd, std::vector<std::string> args) {
 	std::cout << "TEST\n";
 		send(fd, msg.c_str(), strlen(msg.c_str()), 0);
 }
+
+Join::~Join(){}
 
 void Nick::run(int fd, std::vector<std::string> args) {
 	std::string old_name = this->_handler.getServer().getUserName(fd);
@@ -95,6 +103,8 @@ void Nick::run(int fd, std::vector<std::string> args) {
 	this->_handler.getServer().setMapData(fd, new_name);
 }
 
+Nick::~Nick(){}
+
 void Quit::run(int fd, std::vector<std::string> args) {
 	(void) args;
 	std::string usr_name = this->_handler.getServer().getUserName(fd);
@@ -110,6 +120,8 @@ void Quit::run(int fd, std::vector<std::string> args) {
 	close(fd);
 }
 
+Quit::~Quit(){}
+
 void Privmsg::run(int fd, std::vector<std::string> args) {
 	(void) fd;
 	std::vector<std::string>::iterator it = args.begin();
@@ -124,6 +136,8 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
 		++it;
 	}
 }
+
+Privmsg::~Privmsg(){}
 
 void Kick::run(int fd, std::vector<std::string> args) {
 	std::string name = this->_handler.getServer().getUserName(fd);
@@ -144,6 +158,8 @@ void Kick::run(int fd, std::vector<std::string> args) {
 	else
 		return ; /* error msg */
 }
+
+Kick::~Kick(){}
 
 void Part::run(int fd, std::vector<std::string> args) {
 	std::string name = this->_handler.getServer().getUserName(fd);
@@ -173,3 +189,5 @@ void Part::run(int fd, std::vector<std::string> args) {
 		}
 	}
 }
+
+Part::~Part(){}
