@@ -138,11 +138,7 @@ void Notice::run(int fd, std::vector<std::string> args) {
   }
   // nickname NOTICE 대상닉네임 :text
   else {
-    buf += this->_handler.getServer().getUserName(fd);
-    buf.append(MSGNOTICE);
-    buf.append(args.front());
-    buf.append(" :");
-    buf.append(args.back());
+    buf.append(":" + this->_handler.getServer().getUserName(fd) + MSGNOTICE + args.front() + " :" + args.back() + "\n");
     int receiver =
         this->_handler.getServer().g_db.getUserTable().getUser(args.front()).fd;
     // send(
@@ -207,10 +203,7 @@ void Join::run(int fd, std::vector<std::string> args) {
           this->_handler.getServer().g_db.getUserTable().getUser(nick_name),
           *it_channel_name);
       // jujeon JOIN :#999
-      buf.append(nick_name);
-      buf.append(MSGJOIN);
-      buf.append(*it_channel_name);
-	  buf.append("\n");
+      buf.append(":" + nick_name + MSGJOIN + *it_channel_name + "\n");
       //   send(fd, buf.c_str(), buf.size(), 0);
       this->_handler.getServer().setFdMessage(fd, buf);
       // 채널에 속한 유저들에게 똑같은 메세지를 send() 해줘야함
@@ -309,8 +302,7 @@ void Nick::run(int fd, std::vector<std::string> args) {
     this->_handler.getServer().setMapData(fd, args.front());
     this->_handler.getServer().g_db.updateUser(old_user_info, new_user_info);
 
-    buf.append(MSGNICK);
-    buf.append(new_nick);
+    buf.append(":" + this->_handler.getServer().getUserName(fd) + MSGNICK + new_nick + "\n");
     if (this->_handler.getFdflags().find(fd) !=
         this->_handler.getFdflags().end()) {
 		this->_handler.setFdFlags(fd, 2);
