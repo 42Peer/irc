@@ -6,14 +6,14 @@ int splitMessageCommand(int, std::string, std::vector<std::string> &);
 void splitOtherCommand(std::string, std::vector<std::string> &);
 void deleteExceededArgs(std::vector<std::string> &v, int size, int &ctype);
 
-std::pair<int, std::vector<std::string>> parseData(std::string buf) {
+std::pair<int, std::vector<std::string> > parseData(std::string buf) {
   std::vector<std::string> ret_vector;
-  std::pair<int, std::vector<std::string>> ret;
+  std::pair<int, std::vector<std::string> > ret;
   int cmd_type(0);
 
   if (buf == "" || buf[0] == ' ') {
     ret_vector.push_back("");
-    ret = std::pair<int, std::vector<std::string>>(EMPTY, ret_vector);
+    ret = std::pair<int, std::vector<std::string> >(EMPTY, ret_vector);
     return (ret);
   } else {
     std::string cmd, data;
@@ -25,7 +25,7 @@ std::pair<int, std::vector<std::string>> parseData(std::string buf) {
     cmd_type = checkCommand(cmd);
     if (cmd_type == INVAILDCMD || cmd_type == CAP) {
       ret_vector.push_back(buf);
-      ret = std::pair<int, std::vector<std::string>>(cmd_type, ret_vector);
+      ret = std::pair<int, std::vector<std::string> >(cmd_type, ret_vector);
       return (ret);
     } else if (buf.size() == cmd.size())
       data = "";
@@ -60,7 +60,7 @@ std::pair<int, std::vector<std::string>> parseData(std::string buf) {
     if (cmd_type == JOIN || cmd_type == PART || cmd_type == PRIVMSG)
       cmd_type = splitByComma(cmd_type, ret_vector);
 
-    ret = std::pair<int, std::vector<std::string>>(cmd_type, ret_vector);
+    ret = std::pair<int, std::vector<std::string> >(cmd_type, ret_vector);
     return (ret);
   }
 }

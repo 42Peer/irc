@@ -4,8 +4,8 @@ SRCS		=	main.cpp \
 				Server.cpp \
  				Handler.cpp \
 				Command.cpp \
-				Channel.cpp \
 				Parsing.cpp \
+#				Channel.cpp \
 
 OBJS		=	$(SRCS:.cpp=.o)
 NAME		=	ircserv

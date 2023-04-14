@@ -295,12 +295,11 @@ void Nick::run(int fd, std::vector<std::string> args) {
     this->_handler.getServer().setFdMessage(fd, buf);
     return;
   }
-  if (this->_handler.getServer().g_db.getUserTable().isExist(new_nick))) {
-      buf.append(ERR433);
-      this->_handler.getServer().setFdMessage(fd, buf);
-      return;
-    }
-  else {
+  if (this->_handler.getServer().g_db.getUserTable().isExist(new_nick)) {
+    buf.append(ERR433);
+    this->_handler.getServer().setFdMessage(fd, buf);
+    return;
+  } else {
     std::string old_name = this->_handler.getServer().getUserName(fd);
     s_user_info &old_user_info =
         this->_handler.getServer().g_db.getUserTable().getUser(old_name);
@@ -315,6 +314,9 @@ void Nick::run(int fd, std::vector<std::string> args) {
 
     buf.append(MSGNICK);
     buf.append(args.front());
+    if (this->_handler.getFdflags().find(fd) !=
+        this->_handler.getFdflags().end())
+      this->_handler.setFdFlags(fd, 2);
     // send(fd, buf.c_str(), buf.size(), 0);
 
     // 같은 채널 사람들에게 보여주기
@@ -371,7 +373,7 @@ std::vector<bool> duplicated_args(std::vector<std::string> args) {
     } else {
       ret_arg[i] = false;
     }
-    check.insert({args[i], tmp + 1});
+    check[args[i]] = tmp + 1;
   }
   return (ret_arg);
 }

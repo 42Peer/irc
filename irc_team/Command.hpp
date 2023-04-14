@@ -81,8 +81,8 @@ public:
 class Pass : public Command {
 public:
   Pass(Handler &h) : Command(h){};
-  ~User(){};
+  ~Pass(){};
   void run(int, std::vector<std::string>);
-}
+};
 
 #endif /* __COMMAND_HPP_ */
