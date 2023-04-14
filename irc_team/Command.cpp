@@ -12,14 +12,14 @@
 #define ERR442 "442 :You're not on that channel:"
 #define ERR462 "462 :You may not reregister:"
 
-#define MSGNOTICE " NOTICE :"
-#define MSGJOIN " JOIN :"
-#define MSGNICK " NICK :"
-#define MSGQUIT " QUIT :"
-#define MSGPRIVMSG " PRIVMSG :"
-#define MSGKICK " NICK :"
-#define MSGPART " PART :"
-#define MSGPART " PART :"
+#define MSGNOTICE "NOTICE :"
+#define MSGJOIN "JOIN :"
+#define MSGNICK "NICK :"
+#define MSGQUIT "QUIT :"
+#define MSGPRIVMSG "PRIVMSG :"
+#define MSGKICK "NICK :"
+#define MSGPART "PART :"
+#define MSGPART "PART :"
 
 /*
     4/13 thu (branch)updateCommand 
@@ -32,9 +32,11 @@
     what they give you : cmdFigure(fd, vector<string>)
     and we will send(BUF)
     jujeon : nickname, hi : username
-    BUF should be shape of "<nickname> <command> :<channel> :<message>"
-    "jujeon PRIVMSG :#999 :kick #123 hello"
-    in error case BUF should be shape of "476 jujeon 123 :Invalid channel name"
+
+    BUF should be shape of "<command> :<channel> :<message>"
+    "PRIVMSG :#999 :kick #123 hello"
+
+    in error case BUF should be shape of "476 :Invalid channel name: 123"
 
     메세지가 있는 커맨드의 경우 v.back()으로 바로 메세지에 접근해서 메세지인지 확인해야함.
     만약 옵셔널인자가 있는경우 v.size()로 먼저 인자의 갯수를 보고 메세지가 있는지 판단한다. 
@@ -111,7 +113,7 @@ void Notice::run(int fd, std::vector<std::string> args) {
     else if (this->_handler.getServer().g_db.getUserTable().isExist(args.front()) == false){
         buf.append(ERR401);
         buf.append(args.front());
-       send(fd, buf.c_str(), buf.size(), 0);
+        send(fd, buf.c_str(), buf.size(), 0);
     }
     //nickname NOTICE 대상닉네임 :text
     else {
@@ -180,49 +182,64 @@ void Join::run(int fd, std::vector<std::string> args) {
                 buf.append(MSGJOIN);
                 buf.append(*it_channel_name);
                 send(fd, buf.c_str(), buf.size(), 0);
-                // 채널에 속한 유저들 다 send() 해줘야함
+                // 채널에 속한 유저들에게 똑같은 메세지를 send() 해줘야함
                 std::vector<std::string>::iterator it_all_user_list = this->_handler.getServer().getChannelRef().getUserList(*it_channel_name).begin();
                 std::vector<std::string>::iterator eit_all_user_list = this->_handler.getServer().getChannelRef().getUserList(*it_channel_name).end();
                 for (;it_all_user_list < eit_all_user_list; ++it_all_user_list) {
-                    send(this->_handler.getServer().);
+					int receiver = this->_handler.getServer().g_db.getUserTable().getUser(*it_channel_name).fd;
+                    send(receiver, buf.c_str(), buf.size(), 0);
                 }
             }
         }
 	}
-
 }
 
 Join::~Join(){}
 
 void Nick::run(int fd, std::vector<std::string> args) {
-    std::string old_name = this->_handler.getServer().getUserName(fd);
-    std::string new_name = args.front();
-    struct s_user_info old_user_info = this->_handler.getServer().g_db.getUserTable().getUser(old_name);
-    struct s_user_info new_user_info;
+	/*
+		nick <nickname> : 
+			NICK :hello
 
-    new_user_info.nick = new_name;
-    new_user_info.name = old_user_info.name;
-    new_user_info.fd = old_user_info.fd;
-    new_user_info.channel_list = old_user_info.channel_list;
+		(1) db에 해당 닉네임 이미 존재하는지 체크
+			(1-1) 존재하면 433 에러
+			(1-2) 존재하지 않으면 서버랑, 채널의 map 에 닉네임 변경해주기
+			(1-3) 그리고, db에 닉네임도 변경해주기
+		(2) NICK :hello 메세지 띄워주기
 
-    if (!this->_handler.getServer().g_db.updateUser(old_user_info, new_user_info)) {
-        //error_sending
-        // const char* msg = "Duplicated nick";
-        // send(fd, msg, strlen(msg), 0);
-        /*
-            에러넘버를 세팅할지 말지 (논의 필요)
-        */
-        return;
-    }
-    std::vector<std::string>::iterator it = this->_handler.getServer().g_db.getUserTable().getUser(
-            new_name).channel_list.begin();
-    std::vector<std::string>::iterator eit = this->_handler.getServer().g_db.getUserTable().getUser(
-            new_name).channel_list.end();
-    while (it != eit) {
-        this->_handler.getServer().getChannelRef().changeNameFromChannelList(*it, old_name, new_name);
-        ++it;
-    }
-    this->_handler.getServer().setMapData(fd, new_name);
+		error case
+			:irc.local 433 jujeon root_ :Nickname is already in use.
+			433     ERR_NICKNAMEINUSE "<nick> :Nickname is already in use"
+
+	*/
+    // std::string old_name = this->_handler.getServer().getUserName(fd);
+    // std::string new_name = args.front();
+    // struct s_user_info old_user_info = this->_handler.getServer().g_db.getUserTable().getUser(old_name);
+    // struct s_user_info new_user_info;
+
+    // new_user_info.nick = new_name;
+    // new_user_info.name = old_user_info.name;
+    // new_user_info.fd = old_user_info.fd;
+    // new_user_info.channel_list = old_user_info.channel_list;
+
+    // if (!this->_handler.getServer().g_db.updateUser(old_user_info, new_user_info)) {
+    //     //error_sending
+    //     // const char* msg = "Duplicated nick";
+    //     // send(fd, msg, strlen(msg), 0);
+    //     /*
+    //         에러넘버를 세팅할지 말지 (논의 필요)
+    //     */
+    //     return;
+    // }
+    // std::vector<std::string>::iterator it = this->_handler.getServer().g_db.getUserTable().getUser(
+    //         new_name).channel_list.begin();
+    // std::vector<std::string>::iterator eit = this->_handler.getServer().g_db.getUserTable().getUser(
+    //         new_name).channel_list.end();
+    // while (it != eit) {
+    //     this->_handler.getServer().getChannelRef().changeNameFromChannelList(*it, old_name, new_name);
+    //     ++it;
+    // }
+    // this->_handler.getServer().setMapData(fd, new_name);
 }
 
 Nick::~Nick(){}
@@ -286,8 +303,13 @@ Kick::~Kick(){}
 void Part::run(int fd, std::vector<std::string> args) {
     std::string name = this->_handler.getServer().getUserName(fd);
 
+    if (this->_handler.getServer().g_db.i)
+
     if (!this->_handler.getServer().g_db.getUserTable().getUser(name).channel_list.size())
-        return; /* error msg */
+    {
+        // 442     ERR_NOTONCHANNEL
+        return; 
+    }
     else if (!args.size()) {
         std::string current_channel = this->_handler.getServer().g_db.getUserTable().getUser(name).channel_list.back();
         this->_handler.getServer().g_db.getUserTable().removeChannel(
@@ -303,7 +325,9 @@ void Part::run(int fd, std::vector<std::string> args) {
             if (fpos != feit)
                 this->_handler.getServer().g_db.getUserTable().removeChannel(
                         this->_handler.getServer().g_db.getUserTable().getUser(name), *it);
-            else { ; /* send err msg */
+            else { 
+                // 442     ERR_NOTONCHANNEL "<channel> :You're not on that channel"
+                return ;
             }
             ++it;
         }
