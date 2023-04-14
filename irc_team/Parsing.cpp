@@ -2,8 +2,9 @@
 
 int checkCommand(std::string);
 int splitByComma(int, std::vector<std::string>&);
-int splitPrivateNoticeCommand(int, std::string, std::vector<std::string>&);
+int splitMessageCommand(int, std::string, std::vector<std::string>&);
 void splitOtherCommand(std::string, std::vector<std::string>&);
+void deleteExceededArgs(std::vector<std::string>& v, int size, int& ctype);
 
 std::pair<int, std::vector<std::string > > parseData(std::string buf)
 {
@@ -16,67 +17,62 @@ std::pair<int, std::vector<std::string > > parseData(std::string buf)
 		ret_vector.push_back("");
 		ret = std::pair<int, std::vector<std::string> >(EMPTY, ret_vector);
 		return (ret);
-	}
-	else if (buf[0] != '/')
-	{
-		ret_vector.push_back(buf);
-		ret = std::pair<int, std::vector<std::string> >(MESSAGE, ret_vector);
-		return (ret);
-	}
-	else
+	}else
 	{
 		std::string cmd, data;
 		std::istringstream stream;
+		int i(0);
 
-		/* 
-			입력받은 buf 에서 Command 구분 후 타입체크 하여 cmd_type에 저장 후
-			cmd에 커맨드 data에 남은 args를 저장
-		*/
 		stream.str(buf);
 		std::getline(stream, cmd, ' ');
 		cmd_type = checkCommand(cmd);
-		if (buf.size() == cmd.size())
+		if (cmd_type == INVAILDCMD || cmd_type == CAP){
+			ret_vector.push_back(buf);
+			ret = std::pair<int, std::vector<std::string> >(cmd_type, ret_vector);
+			return (ret);
+		}
+		else if (buf.size() == cmd.size())
 			data = "";
 		else
-			data = buf.substr(cmd.size() + 1);
+		{
+			i = cmd.size();
+			while (buf[i] != '\0' && buf[i] == ' ')
+				++i;
+			data = buf.substr(i);
+		}
 
-		/* command 제외한 buf에서 argument 쪼개기 (':', ' ') */
-		if (cmd_type == EMPTY || cmd_type == WRONGARG || cmd_type == INVAILDCMD)
-			;
-		else if (cmd_type == PRIVMSG || cmd_type == NOTICE)
-			cmd_type = splitPrivateNoticeCommand(cmd_type, data, ret_vector);
+		if (cmd_type == PRIVMSG || cmd_type == NOTICE || cmd_type == QUIT || cmd_type == KICK)
+			cmd_type = splitMessageCommand(cmd_type, data, ret_vector);
 		else
 			splitOtherCommand(data, ret_vector);
+ 
+		if (cmd_type == QUIT && (ret_vector.size() != 1 && ret_vector.size() != 0))
+			deleteExceededArgs(ret_vector, 1, cmd_type);
+		else if ((cmd_type == JOIN || cmd_type == NICK || cmd_type == PART || cmd_type == PASS) && ret_vector.size() != 1)
+			deleteExceededArgs(ret_vector, 1, cmd_type);
+		else if (cmd_type == KICK && (ret_vector.size() != 2 && ret_vector.size() != 3))
+			deleteExceededArgs(ret_vector, 3, cmd_type);
+		else if (cmd_type == USER && ret_vector.size() != 4)
+			deleteExceededArgs(ret_vector, 4, cmd_type);
+		else if ((cmd_type == PRIVMSG || cmd_type == NOTICE) && ret_vector.size() != 2)
+			deleteExceededArgs(ret_vector, 2, cmd_type);
 
-		/* command type에 따른 argument 갯수 체크 후 에러 사항이 있을경우 cmd_type에 에러 값 저장 */
-		if (cmd_type == PART)
-		{
-			if (ret_vector.size() != 0 && ret_vector.size() != 1)
-				cmd_type = -2;
-		}
-		else if (cmd_type == QUIT)
-		{
-			if (ret_vector.size() != 0)
-				cmd_type = -2;
-		}
-		else if (cmd_type == KICK || cmd_type == NICK || cmd_type == JOIN)
-		{
-			if (ret_vector.size() != 1)
-				cmd_type = -2;
-		}
+		if (cmd_type == JOIN || cmd_type == PART || cmd_type == PRIVMSG)
+			cmd_type = splitByComma(cmd_type, ret_vector);
 
-		/* 콤마(',')를 기준으로 argument 쪼개기 */
-		if (cmd_type == JOIN || cmd_type == PART)
-			cmd_type = splitByComma(cmd_type, ret_vector);
-		else if (cmd_type == PRIVMSG || cmd_type == NOTICE)
-			cmd_type = splitByComma(cmd_type, ret_vector);
-		/* 
-			최종적으로 반환 할 map에 데이터 넣어서 execution 파트에서 cmd_type만 확인하여 
-			에러일 경우는 vector부분 확인하지 않게끔
-		*/
 		ret = std::pair<int, std::vector<std::string> >(cmd_type, ret_vector);
 		return (ret);
 	}
+}
+
+void deleteExceededArgs(std::vector<std::string>& v, int size, int& ctype)
+{
+	if (v.size() > size) {
+		while(v.size() != size)
+			v.pop_back();
+		return ;
+	}
+	ctype = WRONGARG;
 }
 
 void splitOtherCommand(std::string data, std::vector<std::string>& args) {
@@ -88,128 +84,92 @@ void splitOtherCommand(std::string data, std::vector<std::string>& args) {
 		args.push_back(buf);
 }
 
+/* join part privmsg*/
 int splitByComma(int ctype, std::vector<std::string>& args){
 	std::istringstream stream;
-	std::string channel;
+	std::string targets;
+	std::string message;
 
-	if (args.size() == 0)
+	if (args.size() == 0 || args.front().find(',') == std::string::npos)
 		return (ctype);
-	else if (ctype == JOIN || ctype == PRIVMSG)
-	{
-		std::string msg;
-		
-		if (args.front().find(',') == std::string::npos)
-			return (ctype);
-		else
-		{
-			stream.str(args.front());
-			msg = args.back();
-			args.clear();
-
-			while (std::getline(stream, channel, ','))
-			{
-				if (channel[0] != '#')
-					return (FORMATERR);
-				args.push_back(channel);
-			}
-			args.push_back(msg);
-			return (ctype);
-		}
-	}
-	else 
-	{
-		if (args.front().find(',') == std::string::npos)
-			return (ctype);
-		else {
-			stream.str(args.front());
-			args.clear();
-
-			while (std::getline(stream, channel, ','))
-			{
-				if (channel[0] != '#')
-					return (FORMATERR);
-				args.push_back(channel);
-			}
-			return (ctype);
-		}
-	}
+	else if (ctype == PRIVMSG)
+		message = args.back();
+	
+	stream.str(args.front());
+	args.clear();
+	while (std::getline(stream, targets, ','))
+		args.push_back(targets);
+	if (ctype == PRIVMSG)
+		args.push_back(message);
+	return (ctype);
 }
 
-int splitPrivateNoticeCommand(int ctype, std::string data, std::vector<std::string>& args) {
-	std::string nick_name;
+/* QUIT PRIVMSG KICK NOTICE*/
+int splitMessageCommand(int ctype, std::string data, std::vector<std::string>& args) {
+	std::string targets;
 	std::string msg;
 	std::istringstream stream;
-	
-	stream.str(data);
-	std::getline(stream, nick_name, ' ');
-	if (nick_name.find(':') != nick_name.npos)
-		return (WRONGARG);
-	else
+	int i(0);
+	if (ctype == QUIT)
 	{
-		args.push_back(nick_name);
-		msg = data.substr(nick_name.size() + 1);
-		size_t i(-1);
-		while(msg[++i])
-		{
-			if (msg[i] != ' ')
-				break ;
-		}
-		msg = msg.substr(i);
-		if (msg == "" || (msg[0] == ':' && msg.size() == 1))
-			return (EMPTY);
-		else if (msg[0] != ':')
-			return (FORMATERR);
-		else {
-			msg = msg.substr(1);
-			args.push_back(msg);
+		if (data == "")
 			return (ctype);
+		while (data[i] != '\0' && data[i] == ' ')
+			++i;
+	}
+	else if (ctype  == PRIVMSG || ctype == NOTICE)
+	{
+		stream.str(data);
+		std::getline(stream, targets, ' ');
+		args.push_back(targets);
+		i = targets.size();
+			while (data[i] != '\0' && data[i] == ' ')
+				++i;
+	}
+	else if (ctype == KICK)
+	{
+		stream.str(data);
+		for(int k = 0; k < 2; ++k)
+		{
+			std::getline(stream, targets, ' ');
+			args.push_back(targets);
+			i += targets.size();
+			while (data[i] != '\0' && data[i] == ' ')
+				++i;
+			targets.clear();
 		}
 	}
+	msg = data.substr(i);
+	if (msg == "" || msg[0] != ':')
+		return (FORMATERR);
+	args.push_back(msg.substr(1));
+	return (ctype);
 }
 
 int checkCommand(std::string cmd)
 {
-	for (std::string::iterator it = cmd.begin(); it != cmd.end(); ++it)
-	{
-			if (*it >= 65 && *it <= 90)
-				*it += 32;
-	}
-	if (cmd == "/notice")
+	if (cmd == "NOTICE")
 		return (NOTICE);
-	if (cmd == "/join")
+	else if (cmd == "JOIN")
 		return (JOIN);
-	if (cmd == "/nick")
+	else if (cmd == "NICK")
 		return (NICK);
-	if (cmd == "/part")
+	else if (cmd == "PART")
 		return (PART);
-	if (cmd == "/quit")
+	else if (cmd == "QUIT")
 		return (QUIT);
-	if (cmd == "/privmsg")
-	{
-		std::cout << "Ident\n";
+	else if (cmd == "PRIVMSG")
 		return (PRIVMSG);
-	}
-	if (cmd == "/kick")
+	else if (cmd == "KICK")
 		return (KICK);
-	return (INVAILDCMD);
+	else if (cmd == "PART")
+		return (PART);
+	else if (cmd == "PASS")
+		return (PASS);
+	else if (cmd == "USER")
+		return (USER);
+	else if (cmd == "CAP")
+		return (CAP);
+	else
+		return (INVAILDCMD);
 }
-
-// int main(void)
-// {
-// 	std::cout << parseData("/join #123,#1234,#4321").first << '\n';
-//     // parseData("/asdf");
-//     // parseData("/pArt      ");
-//     // parseData("/jOin");
-//     // parseData("/privMsg jujeon,dllee : hi");
-//     // parseData("/privMsg jujeon:hidasjifaji:sdjifsdfij");
-//     // parseData("/privMsg jujeon:hidasjifaji :sdjifsdfij");
-//     // parseData("/privMsg jujeon            :hi");
-//     // parseData("/privMsg jujeon            :hi          ");
-//     // parseData("/privMsg jujeon            :hi          ");
-//     // parseData("/part");
-//     // parseData("/part :jujeon");
-//     // parseData("/part #123");
-//     // parseData("/part #123,#2222");
-//     // parseData("/part #123 , #2222");
-//     return (0);
-// }

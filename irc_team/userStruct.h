@@ -1,5 +1,5 @@
 #ifndef USERSTRUCT_H
-# define USERSTRUCT_H
+#define USERSTRUCT_H
 
 #include <iostream>
 #include <map>
@@ -12,6 +12,7 @@ struct s_user_info {
   std::string pass;
   std::string nick;
   std::string name;
+  std::string real;
   std::vector<std::string> channel_list;
 };
 

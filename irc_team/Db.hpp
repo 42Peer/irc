@@ -43,6 +43,8 @@ public:
         return userList;
     }
 
+    bool findUser(const std::string& key); 
+
 private:
     std::map<std::string, int> _tables;
 };

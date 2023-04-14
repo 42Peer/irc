@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server(int port_, std::string password_, Channel &Ref) : _password(password_), _channel(Ref)
+Server::Server(int port_, std::string password_) : _password(password_)
 {
     if ((_server_socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
     {
@@ -42,11 +42,6 @@ Server::~Server()
 
 uintptr_t Server::getServerSocket(void) { return _server_socket; }
 
-Channel &Server::getChannelRef(void)
-{
-    return (this->_channel);
-}
-
 std::string Server::getUserName(int fd)
 {
     if (_fd_name_map.find(fd) == _fd_name_map.end())
@@ -73,3 +68,14 @@ void Server::removeMapData(int fd)
 struct sockaddr_in &Server::getServerAddr(void) { return _server_addr; }
 
 std::string &Server::getServerPassword(void) { return _password; }
+
+void Server::setFdMessage(int fd, std::string data)
+{
+    //_fd_message[fd].clear();
+    _fd_message[fd] += data;
+}
+
+std::string& Server::getFdMessage(int fd)
+{
+    return (_fd_message[fd]);
+}

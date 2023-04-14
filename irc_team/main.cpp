@@ -24,8 +24,8 @@ int main(int argc, char **argv) {
     return (1);
   // int port = atoi(argv[1]);
   std::string pass = argv[2];
-  Channel c;
-  Server serv(atoi(argv[1]), pass, c);
+  // Channel c;
+  Server serv(atoi(argv[1]), pass);
   Handler handler(serv);
   handler.run();
   return EXIT_SUCCESS;
