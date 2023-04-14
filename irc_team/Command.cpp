@@ -352,7 +352,7 @@ void Quit::run(int fd, std::vector<std::string> args) {
 
 Quit::~Quit() {}
 
-std::vector<bool> duplicated_args(std::vector<std::string> args) {
+std::vector<bool> duplicated_args(std::vector<std::string>& args) {
   std::map<std::string, int> check;
   std::vector<bool> ret_arg;
   ret_arg.resize(args.size() - 1);
@@ -372,16 +372,15 @@ std::vector<bool> duplicated_args(std::vector<std::string> args) {
 void Privmsg::run(int fd, std::vector<std::string> args) {
   std::vector<bool> res_args = duplicated_args(args);
   std::vector<std::string> users;
-  UserData &user = this->_handler.getServer().g_db.getUserTable();
+  UserData user = this->_handler.getServer().g_db.getUserTable();
   std::string msg;
-  msg = ":" + this->_handler.getServer().getUserName(fd) + "PRIVMSG ";
+  msg = ":" + this->_handler.getServer().getUserName(fd) + " PRIVMSG ";
   for (size_t i = 0; i < args.size() - 1; ++i) {
-    struct s_user_info cur_user = user.getUser(args[i]);
     if (!user.isExist(args[i])) {
       if (args[i][0] == '#') {
         ChannelData chn =
             this->_handler.getServer().g_db.getCorrectChannel(args[i]);
-        if (!chn.findUser(args[i])) {
+        if (!chn.findUser(this->_handler.getServer().getUserName(fd))){
           this->_handler.getServer().setFdMessage(fd, ERR442);
           continue;
         }
@@ -393,7 +392,7 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
         for (size_t j = 0; j < user_lists.size(); ++j) {
           this->_handler.getServer().setFdMessage(
               user.getUser(user_lists[j]).fd,
-              msg + user_lists[j] + " :" + args.back() + ";" +
+              msg + user_lists[j] + " :" + args.back() + ";\n\t" +
                   " Message from " +
                   this->_handler.getServer().getUserName(fd) + " to " +
                   user_lists[j] + "\n");
@@ -407,6 +406,7 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
       this->_handler.getServer().setFdMessage(fd, ERR407);
       continue;
     }
+    struct s_user_info cur_user = user.getUser(args[i]);
     this->_handler.getServer().setFdMessage(
         cur_user.fd, msg + cur_user.nick + " :" + args.back() + ";" +
                          " Message from " +
