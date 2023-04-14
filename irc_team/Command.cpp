@@ -1,9 +1,26 @@
 #include "Command.hpp"
 #include "userStruct.h"
 
+#define ERR461 "461 :Not enough parameters:"
 #define ERR476 "476 :Invalid channel name:"
+#define ERR401 "401 :No such nick or channel:"
+#define ERR404 "404 :Cannot send to channel:"
+#define ERR433 "433 :Nickname is already in use:"
+#define ERR407 "407 :Duplicate recipients. No message delivered:"
+#define ERR412 "412 :No text to send:"
+#define ERR403 "403 :No such channel:"
+#define ERR442 "442 :You're not on that channel:"
+#define ERR462 "462 :You may not reregister:"
 
+#define MSGNOTICE " NOTICE :"
 #define MSGJOIN " JOIN :"
+#define MSGNICK " NICK :"
+#define MSGQUIT " QUIT :"
+#define MSGPRIVMSG " PRIVMSG :"
+#define MSGKICK " NICK :"
+#define MSGPART " PART :"
+#define MSGPART " PART :"
+
 /*
     4/13 thu (branch)updateCommand 
     Need to update :
@@ -34,17 +51,6 @@ std::vector<std::string> getChannelUser(Db &db, std::string name) {
     std::string channel_name = db.getUserTable().getChannelList(user_data);
     return db.getCorrectChannel(channel_name).getUserList();
 }
-
-// void Message::run(int fd, std::vector<std::string> args) {
-//     std::vector<std::string> user_table = getChannelUser(this->_handler.getServer().g_db,
-//                                                          this->_handler.getServer().getUserName(fd));
-
-//     for (size_t j = 0; j < args.size(); ++j) {
-//         std::cout << args[j] << " ";
-//     }
-// }
-
-// Message::~Message(){}
 
 void Notice::run(int fd, std::vector<std::string> args) {
     /*
@@ -97,25 +103,23 @@ void Notice::run(int fd, std::vector<std::string> args) {
     std::string buf;
     //	404 ERR_CANNOTSENDTOCHAN "<channel name> :Cannot send to channel"
     if (args.front()[0] == '#') {
-        buf += "404 ";
-        buf += args.front();
-        buf += " :Cannot send to channel";
+        buf.append(ERR404);
+        buf.append(args.front());
         send(fd, buf.c_str(), buf.size(), 0);
     }                
     // 401 ERR_NOSUCHNICK " <nickname>: No such (user1)nick/channel"
     else if (this->_handler.getServer().g_db.getUserTable().isExist(args.front()) == false){
-       buf += "401 ";
-       buf += args.front();
-       buf += ": No such nickname";
+        buf.append(ERR401);
+        buf.append(args.front());
        send(fd, buf.c_str(), buf.size(), 0);
     }
     //nickname NOTICE 대상닉네임 :text
     else {
         buf += this->_handler.getServer().getUserName(fd);
-        buf += " NOTICE ";
-        buf += args.front();
-		buf += " :";
-		buf += args.back();
+        buf.append(MSGNOTICE);
+        buf.append(args.front());
+        buf.append(" :");
+        buf.append(args.back());
         send(this->_handler.getServer().g_db.getUserTable().getUser(args.front()).fd, buf.c_str(), buf.size(), 0);
     }
 }
@@ -177,8 +181,12 @@ void Join::run(int fd, std::vector<std::string> args) {
                 buf.append(*it_channel_name);
                 send(fd, buf.c_str(), buf.size(), 0);
                 // 채널에 속한 유저들 다 send() 해줘야함
+                std::vector<std::string>::iterator it_all_user_list = this->_handler.getServer().getChannelRef().getUserList(*it_channel_name).begin();
+                std::vector<std::string>::iterator eit_all_user_list = this->_handler.getServer().getChannelRef().getUserList(*it_channel_name).end();
+                for (;it_all_user_list < eit_all_user_list; ++it_all_user_list) {
+                    send(this->_handler.getServer().);
+                }
             }
-
         }
 	}
 
