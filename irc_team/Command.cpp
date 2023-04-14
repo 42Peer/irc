@@ -15,8 +15,8 @@ void Message::run(int fd, std::vector<std::string> args) {
     std::vector<std::string> user_table = getChannelUser(this->_handler.getServer().g_db,
                                                          this->_handler.getServer().getUserName(fd));
 
-    for (size_t j = 0; j < args.size(); ++j) {
-        std::cout << args[j] << " ";
+    for (size_t i = 0; i < user_table.size(); ++i) {
+        std::cout << user_table[i] << "\n";
     }
 }
 
@@ -60,7 +60,7 @@ void Join::run(int fd, std::vector<std::string> args) {
                                                        *it);
         ++it;
     }
-    std::cout << "TEST\n";
+//    std::cout << "TEST\n";
     send(fd, msg.c_str(), strlen(msg.c_str()), 0);
 }
 

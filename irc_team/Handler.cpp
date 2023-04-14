@@ -101,10 +101,9 @@ void Handler::run(void) {
                     int r;
 
                     memset(buf, 0, sizeof(buf));
-                    
+
                     while ((r = read(_monitor[i].ident, buf, 1024)) > 0)
                     {
-//                        r = read(_monitor[i].ident, buf, 1024);
                         buf[r] = 0;
                         ret += buf;
                     }
