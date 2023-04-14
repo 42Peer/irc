@@ -193,7 +193,7 @@ void Join::run(int fd, std::vector<std::string> args) {
   for (int i = 0; it_channel_name != eit; ++it_channel_name, ++i) {
     // size_t pos = it_channel_name->find('#');
     // if (pos != std::string::npos) {
-    if (args[i][0] == '#') {
+    if (args[i][0] != '#') {
       // 476 :Invalid channel name: 123
       buf.append(ERR476);
       //   buf.append(*it_channel_name);
@@ -301,10 +301,10 @@ void Nick::run(int fd, std::vector<std::string> args) {
     return;
   } else {
     std::string old_name = this->_handler.getServer().getUserName(fd);
-    s_user_info &old_user_info =
+    s_user_info old_user_info =
         this->_handler.getServer().g_db.getUserTable().getUser(old_name);
     s_user_info new_user_info;
-    new_user_info.nick = args.front();
+    new_user_info.nick = new_nick;
     new_user_info.name = old_user_info.name;
     new_user_info.fd = old_user_info.fd;
     new_user_info.channel_list = old_user_info.channel_list;
@@ -313,7 +313,7 @@ void Nick::run(int fd, std::vector<std::string> args) {
     this->_handler.getServer().g_db.updateUser(old_user_info, new_user_info);
 
     buf.append(MSGNICK);
-    buf.append(args.front());
+    buf.append(new_nick);
     if (this->_handler.getFdflags().find(fd) !=
         this->_handler.getFdflags().end())
       this->_handler.setFdFlags(fd, 2);

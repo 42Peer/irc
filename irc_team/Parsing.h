@@ -23,7 +23,5 @@ enum {
 	USER, /* arg : 4 username hostname servername realname */
 	CAP,
 };
-
-std::pair<int, std::vector<std::string> > parseData(std::string);
-
-#endif /* _PARSING_H_ */
+std::pair<int, std::vector<std::string> > parseData(std::string buf);
+#endif

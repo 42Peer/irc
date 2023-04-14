@@ -38,14 +38,15 @@ void Handler::run(void) {
 
     for (int i = 0; i < evt; ++i) {
       if (_monitor[i].flags & EV_EOF) {
-        std::cout << "Error: Client Disconnect\n";
+        // std::cout << "Error: Client Disconnect\n";
         close(_monitor[i].ident);
       } else if (_monitor[i].flags & EV_ERROR) {
-        std::cerr << "ENABLE\n";
+        // std::cerr << "ENABLE\n";
         if (_monitor[i].ident == _server.getServerSocket())
           printErrorMsg("Server error");
         else
-          std::cerr << "Client error\n";
+          ;
+        //   std::cerr << "Client error\n";
       } else if (_monitor[i].filter == EVFILT_READ) {
         if (_monitor[i].ident == _server.getServerSocket()) {
           socklen_t sock_len = sizeof(sockaddr_in);
@@ -53,11 +54,11 @@ void Handler::run(void) {
               accept(_server.getServerSocket(),
                      (struct sockaddr *)(&_server.getServerAddr()), &sock_len);
           if (new_client == -1) {
-            std::cerr << "accept err\n";
+            // std::cerr << "accept err\n";
             continue;
           }
-          std::cout << "# new client fd : " << new_client << '\n';
-
+          //   std::cout << "# new client fd : " << new_client << '\n';
+          send(this->getServer().getServerSocket(), "#new\n", 6, 0);
           setsockopt(new_client, SOL_SOCKET, SO_REUSEADDR, 0, 0);
           if (fcntl(new_client, F_SETFL, O_NONBLOCK) == -1)
             printErrorMsg("fcntl()");
@@ -155,7 +156,8 @@ void Handler::figureCommand(int fd,
     case PART:
       cmd = new Part(*this);
       break;
-    default:;
+    default:
+      return;
       // delete cmd; /* somthing wrong */
     }
     cmd->run(fd, data.second);
