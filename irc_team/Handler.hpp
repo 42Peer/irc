@@ -9,6 +9,7 @@ class Handler {
 		~Handler();
 		void run(void);
 		Server& getServer(void);
+        std::string& getMsgBuf(int);    
 private:
     int _kq;
     std::vector<struct kevent> _event_list;

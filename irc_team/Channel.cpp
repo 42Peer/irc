@@ -1,7 +1,5 @@
 #include "Channel.hpp"
 
-extern Db g_db;
-
 bool Channel::setList(std::string channel_name, std::string nick_name)
 {
 	// channel_nick_list 에 벡터가 없다면 벡터를 만들고 그안에 닉네임 넣어준다

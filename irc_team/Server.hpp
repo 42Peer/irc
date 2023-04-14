@@ -6,7 +6,6 @@
 #include "Db.hpp"
 #include "Channel.hpp"
 
-
 class Channel;
 class Server {
 	public:
@@ -24,21 +23,6 @@ class Server {
 		void	removeMapData(int);
 		Db	g_db;
 		// int	getUserFd(std::string);
-
-  /*
-    Commands
-  */
-  // bool authClient(int);
-  // void cmdExecute(int, int, std::vector<std::string>);
-  // void cmdJoin(std::string);
-  // void cmdNick(s_user_info, std::string);
-  // void cmdJoin(void);
-  // void cmdPart(void);
-  // void cmdQuit(void);
-  // void cmdPrivMsg(std::string, std::string);
-  // void cmdList(void);
-  // void cmdKick(void);
-  // void cmdNotice(void);
 
 	private:
 		std::map<int, std::string> _fd_name_map;

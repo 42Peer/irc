@@ -214,6 +214,11 @@ void Handler::new_client_regi(std::string ret, int fd)
     }
 }
 
+std::string &Handler::getMsgBuf(int fd)
+{
+    return (_msgMap[fd]);
+} 
+
 Server &Handler::getServer(void)
 {
     return (_server);
