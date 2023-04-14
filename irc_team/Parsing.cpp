@@ -4,7 +4,7 @@ int checkCommand(std::string);
 int splitByComma(int, std::vector<std::string>&);
 int splitMessageCommand(int, std::string, std::vector<std::string>&);
 void splitOtherCommand(std::string, std::vector<std::string>&);
-void deleteExeededArgs(std::vector<std::string>& v, int size, int& ctype);
+void deleteExceededArgs(std::vector<std::string>& v, int size, int& ctype);
 
 std::pair<int, std::vector<std::string > > parseData(std::string buf)
 {
@@ -47,15 +47,15 @@ std::pair<int, std::vector<std::string > > parseData(std::string buf)
 			splitOtherCommand(data, ret_vector);
  
 		if (cmd_type == QUIT && (ret_vector.size() != 1 && ret_vector.size() != 0))
-			deleteExeededArgs(ret_vector, 1, cmd_type);
+			deleteExceededArgs(ret_vector, 1, cmd_type);
 		else if ((cmd_type == JOIN || cmd_type == NICK || cmd_type == PART || cmd_type == PASS) && ret_vector.size() != 1)
-			deleteExeededArgs(ret_vector, 1, cmd_type);
+			deleteExceededArgs(ret_vector, 1, cmd_type);
 		else if (cmd_type == KICK && (ret_vector.size() != 2 && ret_vector.size() != 3))
-			deleteExeededArgs(ret_vector, 3, cmd_type);
+			deleteExceededArgs(ret_vector, 3, cmd_type);
 		else if (cmd_type == USER && ret_vector.size() != 4)
-			deleteExeededArgs(ret_vector, 4, cmd_type);
+			deleteExceededArgs(ret_vector, 4, cmd_type);
 		else if ((cmd_type == PRIVMSG || cmd_type == NOTICE) && ret_vector.size() != 2)
-			deleteExeededArgs(ret_vector, 2, cmd_type);
+			deleteExceededArgs(ret_vector, 2, cmd_type);
 
 		if (cmd_type == JOIN || cmd_type == PART || cmd_type == PRIVMSG)
 			cmd_type = splitByComma(cmd_type, ret_vector);
@@ -65,7 +65,7 @@ std::pair<int, std::vector<std::string > > parseData(std::string buf)
 	}
 }
 
-void deleteExeededArgs(std::vector<std::string>& v, int size, int& ctype)
+void deleteExceededArgs(std::vector<std::string>& v, int size, int& ctype)
 {
 	if (v.size() > size) {
 		while(v.size() != size)
@@ -123,8 +123,8 @@ int splitMessageCommand(int ctype, std::string data, std::vector<std::string>& a
 		std::getline(stream, targets, ' ');
 		args.push_back(targets);
 		i = targets.size();
-		while (data[i] != '\0' && data[i] == ' ')
-			++i;
+			while (data[i] != '\0' && data[i] == ' ')
+				++i;
 	}
 	else if (ctype == KICK)
 	{
@@ -148,11 +148,6 @@ int splitMessageCommand(int ctype, std::string data, std::vector<std::string>& a
 
 int checkCommand(std::string cmd)
 {
-	// for (std::string::iterator it = cmd.begin(); it != cmd.end(); ++it)
-	// {
-	// 		if (*it >= 65 && *it <= 90)
-	// 			*it += 32;
-	// }
 	if (cmd == "NOTICE")
 		return (NOTICE);
 	else if (cmd == "JOIN")
@@ -177,22 +172,4 @@ int checkCommand(std::string cmd)
 		return (CAP);
 	else
 		return (INVAILDCMD);
-}
-
-int main(int ac, char *av[])
-{
-	if (ac != 2)
-		return (1);
-	std::pair<int, std::vector<std::string> > ret = parseData(av[1]);
-	std::vector<std::string>::iterator it = ret.second.begin();
-	std::cout << "cmd type : " <<  ret.first << '\n';
-	std::cout << "v size : " << ret.second.size() << '\n';
-	if (ret.second.size() != 0){
-		while (it != ret.second.end())
-		{
-			std::cout << *it << '\n';
-			++it;
-		}
-	}
-	return (0);
 }
