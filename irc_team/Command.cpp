@@ -154,6 +154,7 @@ void Join::run(int fd, std::vector<std::string> args) {
 	
 	std::vector<std::string>::iterator it_channel_name = args.begin();
 	std::vector<std::string>::iterator eit = args.end();
+    std::string my_nick_name = this->_handler.getServer().getUserName(fd);
     std::string buf;
 	for (; it_channel_name != eit; ++it_channel_name) {
         size_t pos = it_channel_name->find('#');
@@ -166,14 +167,15 @@ void Join::run(int fd, std::vector<std::string> args) {
         }
         else {
             std::string nick_name = this->_handler.getServer().getUserName(fd);
-            if (this->_handler.getServer().g_db.getCorrectChannel(*it_channel_name).isExist(nick_name) == false) {
+                // chanel, server map 변수 업데이트 해줘야함.
+            if (this->_handler.getServer().getChannelRef().isExistInChannel(*it_channel_name, my_nick_name) == false) {
+                this->_handler.getServer().getChannelRef().setList(*it_channel_name, my_nick_name);
                 this->_handler.getServer().g_db.addChannelUser(this->_handler.getServer().g_db.getUserTable().getUser(nick_name), *it_channel_name);
 			    // jujeon JOIN :#999
                 buf.append(nick_name);
                 buf.append(MSGJOIN);
                 buf.append(*it_channel_name);
                 send(fd, buf.c_str(), buf.size(), 0);
-                // chanel, server map 변수 업데이트 해줘야함.
                 // 채널에 속한 유저들 다 send() 해줘야함
             }
 

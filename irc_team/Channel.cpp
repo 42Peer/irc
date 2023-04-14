@@ -4,6 +4,7 @@ extern Db g_db;
 
 bool Channel::setList(std::string channel_name, std::string nick_name)
 {
+	// channel_nick_list 에 벡터가 없다면 벡터를 만들고 그안에 닉네임 넣어준다
 	if (_channel_nick_list.find(channel_name) == _channel_nick_list.end())
 	{
 		std::vector<std::string> temp_vector;
@@ -13,6 +14,7 @@ bool Channel::setList(std::string channel_name, std::string nick_name)
 	}
 	else
 	{
+		// channel_nick_list에 찾는 닉네임이 존재하지 않는다면 요소 하나에 접근해서 너허준다 0반환
 		//duplication check needed?
 		if (std::find(_channel_nick_list[channel_name].begin(), _channel_nick_list[channel_name].end(), nick_name)
 							!= _channel_nick_list[channel_name].end())
