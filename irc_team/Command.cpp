@@ -188,7 +188,7 @@ void Join::run(int fd, std::vector<std::string> args) {
 
   std::vector<std::string>::iterator it_channel_name = args.begin();
   std::vector<std::string>::iterator eit = args.end();
-  std::string my_nick_name = this->_handler.getServer().getUserName(fd);
+  std::string nick_name = this->_handler.getServer().getUserName(fd);
   std::string buf("");
   for (int i = 0; it_channel_name != eit; ++it_channel_name, ++i) {
     // size_t pos = it_channel_name->find('#');
@@ -201,7 +201,7 @@ void Join::run(int fd, std::vector<std::string> args) {
       this->_handler.getServer().setFdMessage(fd, buf);
       return;
     } else {
-      std::string nick_name = this->_handler.getServer().getUserName(fd);
+//      std::string nick_name = this->_handler.getServer().getUserName(fd);
       // chanel, server map 변수 업데이트 해줘야함.
       this->_handler.getServer().g_db.addChannelUser(
           this->_handler.getServer().g_db.getUserTable().getUser(nick_name),
@@ -220,12 +220,8 @@ void Join::run(int fd, std::vector<std::string> args) {
       std::vector<std::string>::iterator it_all_user_list = userList.begin();
       std::vector<std::string>::iterator eit_all_user_list = userList.end();
 
-      for (; it_all_user_list < eit_all_user_list; ++it_all_user_list) {
-        int receiver = this->_handler.getServer()
-                           .g_db.getUserTable()
-                           .getUser(*it_channel_name)
-                           .fd;
-        // send(receiver, buf.c_str(), buf.size(), 0);
+      for (; it_all_user_list != eit_all_user_list; ++it_all_user_list) {
+        int receiver = this->_handler.getServer().g_db.getUserTable().getUser(*it_all_user_list).fd;
         this->_handler.getServer().setFdMessage(receiver, buf);
       }
     }
@@ -315,8 +311,10 @@ void Nick::run(int fd, std::vector<std::string> args) {
     buf.append(MSGNICK);
     buf.append(new_nick);
     if (this->_handler.getFdflags().find(fd) !=
-        this->_handler.getFdflags().end())
-      this->_handler.setFdFlags(fd, 2);
+        this->_handler.getFdflags().end()) {
+		this->_handler.setFdFlags(fd, 2);
+		this->_handler.getServer().g_db.getUserTable().getUser(new_nick).fd = fd;
+	}
     // send(fd, buf.c_str(), buf.size(), 0);
 
     // 같은 채널 사람들에게 보여주기
@@ -405,7 +403,7 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
               msg + user_lists[j] + " :" + args.back() + ";" +
                   " Message from " +
                   this->_handler.getServer().getUserName(fd) + " to " +
-                  user_lists[j]);
+                  user_lists[j] + "\n");
         }
         continue;
       }

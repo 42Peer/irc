@@ -156,6 +156,9 @@ void Handler::figureCommand(int fd,
     case PART:
       cmd = new Part(*this);
       break;
+	case NOTICE:
+		cmd = new Notice(*this);
+		break;
     default:
       return;
       // delete cmd; /* somthing wrong */

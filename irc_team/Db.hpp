@@ -124,7 +124,9 @@ public:
     return static_cast<std::string>("");
   }
 
-  s_user_info &getUser(const std::string &id) { return (_tables[id]); }
+  s_user_info &getUser(const std::string &id) {
+	  return (_tables[id]);
+  }
 
 private:
   std::map<std::string, struct s_user_info> _tables;
