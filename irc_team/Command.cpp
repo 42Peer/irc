@@ -17,13 +17,13 @@
 #define ERR432 "432 :Erroneus nickname\n"
 #define ERR482 "482 :You're not channel operator\n"
 
-#define MSGNOTICE "NOTICE :"
-#define MSGJOIN "JOIN :"
-#define MSGNICK "NICK :"
-#define MSGQUIT "QUIT :"
-#define MSGPRIVMSG "PRIVMSG :"
-#define MSGKICK "NICK :"
-#define MSGPART "PART :"
+#define MSGNOTICE " NOTICE :"
+#define MSGJOIN " JOIN :"
+#define MSGNICK " NICK :"
+#define MSGQUIT " QUIT :"
+#define MSGPRIVMSG " PRIVMSG :"
+#define MSGKICK " NICK :"
+#define MSGPART " PART :"
 
 /*
     4/13 thu (branch)updateCommand
@@ -210,6 +210,7 @@ void Join::run(int fd, std::vector<std::string> args) {
       buf.append(nick_name);
       buf.append(MSGJOIN);
       buf.append(*it_channel_name);
+	  buf.append("\n");
       //   send(fd, buf.c_str(), buf.size(), 0);
       this->_handler.getServer().setFdMessage(fd, buf);
       // 채널에 속한 유저들에게 똑같은 메세지를 send() 해줘야함
@@ -418,7 +419,7 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
         cur_user.fd, msg + cur_user.nick + " :" + args.back() + ";" +
                          " Message from " +
                          this->_handler.getServer().getUserName(fd) + " to " +
-                         cur_user.nick);
+                         cur_user.nick + "\n");
   }
 }
 
