@@ -4,17 +4,18 @@
 #include <algorithm>
 #include <vector>
 
-#define ERR461 "461 :Not enough parameters:"
-#define ERR476 "476 :Invalid channel name:"
-#define ERR401 "401 :No such nick or channel:"
-#define ERR404 "404 :Cannot send to channel:"
-#define ERR433 "433 :Nickname is already in use:"
-#define ERR407 "407 :Duplicate recipients. No message delivered:"
-#define ERR412 "412 :No text to send:"
-#define ERR403 "403 :No such channel:"
-#define ERR442 "442 :You're not on that channel:"
-#define ERR462 "462 :You may not register:"
-#define ERR432 "432 :Erroneus nickname"
+#define ERR461 "461 :Not enough parameters:\n"
+#define ERR476 "476 :Invalid channel name:\n"
+#define ERR401 "401 :No such nick or channel:\n"
+#define ERR404 "404 :Cannot send to channel:\n"
+#define ERR433 "433 :Nickname is already in use:\n"
+#define ERR407 "407 :Duplicate recipients. No message delivered:\n"
+#define ERR412 "412 :No text to send:\n"
+#define ERR403 "403 :No such channel:\n"
+#define ERR442 "442 :You're not on that channel:\n"
+#define ERR462 "462 :You may not register:\n"
+#define ERR432 "432 :Erroneus nickname\n"
+#define ERR482 "482 :You're not channel operator\n"
 
 #define MSGNOTICE "NOTICE :"
 #define MSGJOIN "JOIN :"
@@ -118,13 +119,12 @@ void Notice::run(int fd, std::vector<std::string> args) {
   //         ++it;
   //     }
   // }
-
   std::vector<std::string>::iterator it = args.begin();
   std::string buf("");
   //	404 ERR_CANNOTSENDTOCHAN "<channel name> :Cannot send to channel"
   if (args.front()[0] == '#') {
     buf.append(ERR404);
-    buf.append(args.front());
+    // buf.append(args.front());
     // send(fd, buf.c_str(), buf.size(), 0);
     this->_handler.getServer().setFdMessage(fd, buf);
   }
@@ -132,7 +132,7 @@ void Notice::run(int fd, std::vector<std::string> args) {
   else if (this->_handler.getServer().g_db.getUserTable().isExist(
                args.front()) == false) {
     buf.append(ERR401);
-    buf.append(args.front());
+    // buf.append(args.front());
     // send(fd, buf.c_str(), buf.size(), 0);
     this->_handler.getServer().setFdMessage(fd, buf);
   }
@@ -164,7 +164,7 @@ void Join::run(int fd, std::vector<std::string> args) {
                   (2-1) 없다면 476 에러 반환
           (3) 들어가려는 채널에 이미 내가 있는지 검사
                   (3-1) 없다면 채널 들어간다.
-  (4) 그리고 나와 채널에 속한 사람들에게 메세지 출력
+                  (4) 그리고 나와 채널에 속한 사람들에게 메세지 출력
 
           error case
                   476 jujeon 123 :Invalid channel name
@@ -184,16 +184,19 @@ void Join::run(int fd, std::vector<std::string> args) {
   // std::cout << "TEST\n";
   // send(fd, msg.c_str(), strlen(msg.c_str()), 0);
 
+  // vector<string>  [#123] [#4555] [#1]
+
   std::vector<std::string>::iterator it_channel_name = args.begin();
   std::vector<std::string>::iterator eit = args.end();
   std::string my_nick_name = this->_handler.getServer().getUserName(fd);
   std::string buf("");
-  for (; it_channel_name != eit; ++it_channel_name) {
-    size_t pos = it_channel_name->find('#');
-    if (pos != std::string::npos) {
+  for (int i = 0; it_channel_name != eit; ++it_channel_name, ++i) {
+    // size_t pos = it_channel_name->find('#');
+    // if (pos != std::string::npos) {
+    if (args[i][0] == '#') {
       // 476 :Invalid channel name: 123
       buf.append(ERR476);
-      buf.append(*it_channel_name);
+      //   buf.append(*it_channel_name);
       //   send(fd, buf.c_str(), buf.size(), 0);
       this->_handler.getServer().setFdMessage(fd, buf);
       return;
@@ -286,19 +289,18 @@ void Nick::run(int fd, std::vector<std::string> args) {
   // this->_handler.getServer().setMapData(fd, new_name);
 
   std::string buf("");
-  std::vector<std::string>::iterator it = args.begin();
-  size_t pos = it->find('#');
-  if (pos != std::string::npos) {
+  std::string new_nick = args[0];
+  if (new_nick[0] == '#') {
     buf.append(ERR432);
-    buf.append(args.front());
-    return;
-  }
-  if (this->_handler.getServer().g_db.getUserTable().isExist(args.front())) {
-    buf.append(ERR433);
-    buf.append(args.front());
     this->_handler.getServer().setFdMessage(fd, buf);
     return;
-  } else {
+  }
+  if (this->_handler.getServer().g_db.getUserTable().isExist(new_nick))) {
+      buf.append(ERR433);
+      this->_handler.getServer().setFdMessage(fd, buf);
+      return;
+    }
+  else {
     std::string old_name = this->_handler.getServer().getUserName(fd);
     s_user_info &old_user_info =
         this->_handler.getServer().g_db.getUserTable().getUser(old_name);
@@ -378,6 +380,8 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
   std::vector<bool> res_args = duplicated_args(args);
   std::vector<std::string> users;
   UserData &user = this->_handler.getServer().g_db.getUserTable();
+  std::string msg;
+  msg = ":" + this->_handler.getServer().getUserName(fd) + "PRIVMSG ";
   for (size_t i = 0; i < args.size() - 1; ++i) {
     struct s_user_info cur_user = user.getUser(args[i]);
     if (!user.isExist(args[i])) {
@@ -395,7 +399,11 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
         std::vector<std::string> user_lists = chn.getUserList();
         for (size_t j = 0; j < user_lists.size(); ++j) {
           this->_handler.getServer().setFdMessage(
-              user.getUser(user_lists[j]).fd, args.back());
+              user.getUser(user_lists[j]).fd,
+              msg + user_lists[j] + " :" + args.back() + ";" +
+                  " Message from " +
+                  this->_handler.getServer().getUserName(fd) + " to " +
+                  user_lists[j]);
         }
         continue;
       }
@@ -406,7 +414,11 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
       this->_handler.getServer().setFdMessage(fd, ERR407);
       continue;
     }
-    this->_handler.getServer().setFdMessage(cur_user.fd, args.back());
+    this->_handler.getServer().setFdMessage(
+        cur_user.fd, msg + cur_user.nick + " :" + args.back() + ";" +
+                         " Message from " +
+                         this->_handler.getServer().getUserName(fd) + " to " +
+                         cur_user.nick);
   }
 }
 
@@ -464,44 +476,67 @@ void Kick::run(int fd, std::vector<std::string> args) {
   /*
           kick <channel> <name> [reason]:
                   KICK #123 dllee :reason
-    (0) 파라미터 개수 2개 ~ 3개인지 확인
-      (0-0) 파라미터 개수 부족시 에러 => 461 ERR_NEEDMOREPARAMS
-      (0-1) 파라미터 개수 충족시 다음 단계
+    x(0) 파라미터 개수 2개 ~ 3개인지 확인
+      x(0-0) 파라미터 개수 부족시 에러 => 461 ERR_NEEDMOREPARAMS
+      x(0-1) 파라미터 개수 충족시 다음 단계
     (1) channel에 #이 존재하는지 체크
       (1-0) #이 존재하지 않으면 에러 => 476 ERR_BADCHANMASK ? 401
       (1-1) db에 해당 채널이 존재하는지 체크
         (1-1-0) db에 해당 채널이 없는 경우 => 442 ERR_NOTONCHANNEL
         (1-1-1) db에 해당 채널 존재하는 경우 다음 단계
     (2) name이 존재하는지 체크
-      (2-0) 해당 채널에 name이 db에 존재하지 않으면 에러 => 441 :No such nick
-      (2-1) 본인이 해당 채널에 있는지 확인
-      (2-1-0) name이 존재할 경우 해당 채널에서 권한 확인 후 name 추방
-      (2-1-1) name이 존재할 경우 해당 채널에 권한 없는 경우 에러 => 482
-    (3) reason이 존재하는지 체크
-      (2-1) 없는 경우 전송
-      (2-2) reason을 추가하여 전송
+      (2-0) 해당 채널에 name이 db에 존재하지 않으면 에러 => 401/441 :No such
+    nick (2-1) 본인이 해당 채널에 있는지 확인 (2-1-0) name이 존재할 경우 해당
+    채널에서 권한 확인 후 name 추방 (2-1-1) name이 존재할 경우 해당 채널에 권한
+    없는 경우 에러 => 482 (3) reason이 존재하는지 체크 (3-1) 없는 경우 전송
+      (3-2) reason을 추가하여 전송
   */
-  std::string tmp = "";
+  std::string tmp_msg = "";
 
   if (args[0][0] != '#') {
     _handler.getServer().setFdMessage(fd, ERR401); // ERR 확인!!
     return;
   } else {
-    bool check = _handler.getServer().g_db.addChannel(args[1]);
-    if (!check) { // channel 존재여부 확인
+    bool check = _handler.getServer().g_db.addChannel(args[0]);
+    _handler.getServer().g_db.channelClear(args[0]);
+    if (check) { // channel 존재여부 확인
       _handler.getServer().setFdMessage(fd, ERR442);
       return;
     }
   }
 
-  if (_handler.getServer().g_db.isExist(args[1])) {
-
+  ChannelData tmp_channel =
+      _handler.getServer().g_db.getCorrectChannel(args[1]);
+  if (!_handler.getServer().g_db.isExist(args[1])) {
+    _handler.getServer().setFdMessage(fd, ERR401);
+    return;
   } else {
+    if (!tmp_channel.findUser(args[1])) {
+      _handler.getServer().setFdMessage(fd, ERR482);
+      return;
+    }
   }
 
-  if (arg_size == 3) {
-    _handler.getServer().setFdMessage(fd, )
+  std::string tmp_name = _handler.getServer().getUserName(fd);
+  if (!tmp_channel.findUser(tmp_name)) {
+    _handler.getServer().setFdMessage(fd, ERR442);
+    return;
+  }
+
+  if (tmp_channel.getPrivileges(tmp_name) > 0) {
+    _handler.getServer().setFdMessage(fd, ERR482);
   } else {
+    tmp_channel.removeData(args[1]);
+    tmp_msg = "KICK " + args[0] + " " + args[1];
+    if (args.size() == 3) {
+      tmp_msg += ":";
+      tmp_msg += args[2];
+      tmp_msg += "\n";
+      _handler.getServer().setFdMessage(fd, tmp_msg);
+    } else {
+      tmp_msg += "\n";
+      _handler.getServer().setFdMessage(fd, tmp_msg);
+    }
   }
 }
 
@@ -516,7 +551,7 @@ void Part::run(int fd, std::vector<std::string> args) {
           .g_db.getUserTable()
           .getUser(name)
           .channel_list.size() == 0) {
-    _handler.getMsgBuf(fd).append(ERR442);
+    _handler.getServer().setFdMessage(fd, ERR442);
     return;
   } else if (!args.size()) {
     std::string current_channel = this->_handler.getServer()
@@ -544,12 +579,13 @@ void Part::run(int fd, std::vector<std::string> args) {
       else {
         // ERR403 "403 :No such channel:"
         if (_handler.getServer().g_db.getCorrectChannel(*fpos).isEmpty()) {
-          _handler.getMsgBuf(fd).append(ERR403);
-          _handler.getMsgBuf(fd).append(*fpos);
+          _handler.getServer().setFdMessage(fd, ERR403);
+          _handler.getServer().setFdMessage(fd, *fpos);
+          _handler.getServer().g_db.channelClear(*fpos);
         } else {
           // the user is not in the channels in args.
-          _handler.getMsgBuf(fd).append(ERR442);
-          _handler.getMsgBuf(fd).append(*it);
+          _handler.getServer().setFdMessage(fd, ERR442);
+          _handler.getServer().setFdMessage(fd, *it);
         }
         return;
       }

@@ -153,7 +153,9 @@ public:
             return;
         user_table.addUser(user);
     }
-
+    
+    void channelClear(const std::string& key);
+    
     void removeChannel(struct s_user_info &user, const std::string &key) {
         /* iterator erase*/
         iter it;
@@ -163,9 +165,7 @@ public:
             }
         }
         user_table.removeChannel(user, key);
-        std::map<std::string, ChannelData>::iterator channelIter = channel_tables.find(key);
-        if (channelIter != channel_tables.end() && channelIter->second.isEmpty())
-            channel_tables.erase(channelIter);
+        channelClear(key); 
     }
 
     void removeUser(struct s_user_info &user) {

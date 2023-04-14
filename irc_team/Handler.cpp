@@ -87,6 +87,7 @@ void Handler::run(void)
                 std::string fd_data = this->getServer().getFdMessage(_monitor[i].ident);
                 if (fd_data != "")
                     send(_monitor[i].ident, fd_data.c_str(), fd_data.size(), 0); 
+            }
         }
     }
 }
