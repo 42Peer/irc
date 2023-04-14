@@ -38,8 +38,6 @@ std::vector<std::string> getChannelUser(Db &db, std::string name) {
 //     }
 // }
 
-// Message::~Message(){}
-
 void Notice::run(int fd, std::vector<std::string> args) {
     /*
         notice : <nickname> <text> 
@@ -117,6 +115,20 @@ void Notice::run(int fd, std::vector<std::string> args) {
 Notice::~Notice(){}
 
 void Join::run(int fd, std::vector<std::string> args) {
+
+    std::vector<std::string>::iterator it = args.begin();
+    std::string name = this->_handler.getServer().getUserName(fd);
+    std::string msg = "JOIN DONE";
+    while (it != args.end()) {
+        if (this->_handler.getServer().getChannelRef().setList(*it, name))
+            this->_handler.getServer().g_db.addChannel(*it);
+        this->_handler.getServer().g_db.addChannelUser(this->_handler.getServer().g_db.getUserTable().getUser(name),
+                                                       *it);
+        ++it;
+    }
+//    std::cout << "TEST\n";
+    send(fd, msg.c_str(), strlen(msg.c_str()), 0);
+
 	/*
 		join <channel>[,<channel>]: 
 			jujeon JOIN :#999
@@ -145,6 +157,7 @@ void Join::run(int fd, std::vector<std::string> args) {
 //     }
 //     std::cout << "TEST\n";
 //     send(fd, msg.c_str(), strlen(msg.c_str()), 0);
+
 }
 
 Join::~Join(){}
