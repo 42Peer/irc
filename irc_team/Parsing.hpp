@@ -1,17 +1,14 @@
-#ifndef _PARSING_H_
-# define _PARSING_H_
+#ifndef __PARSING_HPP_
+# define __PARSING_HPP_
 
 #include <vector>
-#include <utility>
 #include <iostream>
 #include <string>
 #include <sstream>
 
 enum {
-	FORMATERR = -4, /* wrong msg format format */
-	WRONGARG = -3, /* wrong argument number */
-	INVAILDCMD = -2,
-	EMPTY = -1, /* no cmd or no argu */
+	WRONGARG = -2, /* wrong argument number */
+	INVAILDCMD = -1,
 	NOTICE, /* arg : 2 */
 	JOIN, /* arg : 1    channels  delimeter : ',' */
 	NICK, /* arg : 1    nickname */
@@ -23,5 +20,7 @@ enum {
 	USER, /* arg : 4 username hostname servername realname */
 	CAP,
 };
+
 std::pair<int, std::vector<std::string> > parseData(std::string buf);
-#endif
+
+#endif /* __PARSING_HPP_ */
