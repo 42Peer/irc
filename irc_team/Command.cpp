@@ -554,34 +554,61 @@ void Part::run(int fd, std::vector<std::string> args) {
     this->_handler.getServer().g_db.getUserTable().removeChannel(
         this->_handler.getServer().g_db.getUserTable().getUser(name),
         current_channel);
+
   } else {
     std::vector<std::string>::iterator it = args.begin();
     while (it != args.end()) {
-      std::vector<std::string>::iterator fit = this->_handler.getServer()
-                                                   .g_db.getUserTable()
-                                                   .getUser(name)
-                                                   .channel_list.begin();
-      std::vector<std::string>::iterator feit = this->_handler.getServer()
-                                                    .g_db.getUserTable()
-                                                    .getUser(name)
-                                                    .channel_list.end();
-      std::vector<std::string>::iterator fpos = std::find(fit, feit, *it);
-      if (fpos != feit)
-        this->_handler.getServer().g_db.getUserTable().removeChannel(
-            this->_handler.getServer().g_db.getUserTable().getUser(name), *it);
-      else {
-        // ERR403 "403 :No such channel:"
-        if (_handler.getServer().g_db.getCorrectChannel(*fpos).isEmpty()) {
-          _handler.getServer().setFdMessage(fd, ERR403);
-          _handler.getServer().setFdMessage(fd, *fpos);
-          _handler.getServer().g_db.channelClear(*fpos);
+        ChannelData& chn = this->_handler.getServer().g_db.getCorrectChannel(*it);
+        if (chn.getUserList()[0] == "") {
+            this->_handler.getServer().g_db.channelClear(*it);
+            _handler.getServer().setFdMessage(fd, ERR403);
+            _handler.getServer().setFdMessage(fd, *it);
+            _handler.getServer().g_db.channelClear(*it);
         } else {
-          // the user is not in the channels in args.
-          _handler.getServer().setFdMessage(fd, ERR442);
-          _handler.getServer().setFdMessage(fd, *it);
+            std::vector<std::string> channel_user = chn.getUserList();
+            size_t i;
+            for (i = 0; i < channel_user.size(); ++i) {
+                if (channel_user[i] == name) {
+                    break ;
+                }
+            }
+            if (i == channel_user.size()) {
+                _handler.getServer().setFdMessage(fd, ERR442);
+                _handler.getServer().setFdMessage(fd, *it);
+            } else {
+                chn.removeData(name);
+                this->_handler.getServer().g_db.getUserTable().removeChannel(
+                  this->_handler.getServer().g_db.getUserTable().getUser(name), *it
+               );
+            }
         }
-        return;
-      }
+//      std::vector<std::string>::iterator fit = this->_handler.getServer()
+//                                                   .g_db.getUserTable()
+//                                                   .getUser(name)
+//                                                   .channel_list.begin();
+//      std::vector<std::string>::iterator feit = this->_handler.getServer()
+//                                                    .g_db.getUserTable()
+//                                                    .getUser(name)
+//                                                    .channel_list.end();
+//      std::vector<std::string>::iterator fpos = std::find(fit, feit, *it);
+//      if (fpos != feit)
+//      {
+//          this->_handler.getServer().g_db.getUserTable().removeChannel(
+//                  this->_handler.getServer().g_db.getUserTable().getUser(name), *it);
+//      }
+//      else {
+//        // ERR403 "403 :No such channel:"
+//        if (_handler.getServer().g_db.getCorrectChannel(*fpos).isEmpty()) {
+//          _handler.getServer().setFdMessage(fd, ERR403);
+//          _handler.getServer().setFdMessage(fd, *fpos);
+//          _handler.getServer().g_db.channelClear(*fpos);
+//        } else {
+//          // the user is not in the channels in args.
+//          _handler.getServer().setFdMessage(fd, ERR442);
+//          _handler.getServer().setFdMessage(fd, *it);
+//        }
+//        return;
+//      }
       ++it;
     }
   }
