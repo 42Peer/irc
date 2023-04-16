@@ -4,6 +4,14 @@
 #include "userStruct.hpp"
 #include "Message.hpp"
 
+int findCrln(std::string &line) {
+    for (size_t i = 0; i < line.size(); ++i) {
+        if ((line[i] == '\r' && line[i + 1] == '\n') || line[i] == '\n')
+            return (i);
+    }
+    return (-1);
+}
+
 void printErrorMsg(const char *msg) {
 	std::cerr << "Error : " << msg << '\n';
 	exit(1);
@@ -24,6 +32,7 @@ Handler::Handler(Server &server_) : _server(server_) {
 
 Handler::~Handler() {}
 
+
 void Handler::run(void) {
 	// std::cout << "socket server running... fd : " << _server.getServerSocket() << "\n";
 	std::map<int, std::string> tmp_data;
@@ -39,7 +48,8 @@ void Handler::run(void) {
 			if (_monitor[i].flags & EV_EOF) {
 				// std::cout << "Error: Client Disconnect\n";
 				close(_monitor[i].ident);
-			} else if (_monitor[i].flags & EV_ERROR) {
+			}
+            else if (_monitor[i].flags & EV_ERROR) {
 				// std::cerr << "ENABLE\n";
 				if (_monitor[i].ident == _server.getServerSocket())
 					printErrorMsg("Server error");
@@ -53,7 +63,6 @@ void Handler::run(void) {
 					if (new_client == -1) {
 						continue;
 					}
-					//   std::cout << "# new client fd : " << new_client << '\n';
 					send(this->getServer().getServerSocket(), "#new\n", 6, 0);
 					setsockopt(new_client, SOL_SOCKET, SO_REUSEADDR, 0, 0);
 					if (fcntl(new_client, F_SETFL, O_NONBLOCK) == -1)
@@ -63,16 +72,24 @@ void Handler::run(void) {
 					wrapEvSet(_event_list, new_client, EVFILT_WRITE, EV_ADD | EV_ENABLE);
 
 					_fd_flags[new_client] = 0;
-				} else if (servReceive(_monitor[i].ident)){
-						makeProtocol(_monitor[i].ident);
-						std::pair<int, std::vector<std::string> > parsed_data = parseData(_msgMap[_monitor[i].ident].second);
-						figureCommand(_monitor[i].ident, parsed_data);
 				}
-			} else if (_monitor[i].filter == EVFILT_WRITE) {
-				std::string fd_data = this->getServer().getFdMessage(_monitor[i].ident);
-				if (fd_data != "")
-					send(_monitor[i].ident, fd_data.c_str(), fd_data.size(), 0);
-				this->getServer().getFdMessage(_monitor[i].ident).clear();
+                else if (servReceive(_monitor[i].ident)) {
+                    int idx;
+                    while ((idx = findCrln(_msgMap[_monitor[i].ident].first)) != -1) {
+                        std::string test =_msgMap[_monitor[i].ident].first.substr(0, idx);
+                        std::cout << "recv data : " <<  test << "\n";
+                        std::pair<int, std::vector<std::string> > parsed_data = parseData(test);
+                        _msgMap[_monitor[i].ident].first.erase(0, idx + 2 - (_msgMap[_monitor[i].ident].first[i] == '\n'));
+                        figureCommand(_monitor[i].ident, parsed_data);
+                    }
+				}
+            } else if (_monitor[i].filter == EVFILT_WRITE) {
+                std::string fd_data = this->getServer().getFdMessage(_monitor[i].ident);
+                if (fd_data == "")
+                    continue ;
+                std::cout << fd_data << "\n";
+                send(_monitor[i].ident, fd_data.c_str(), fd_data.size(), 0);
+                this->getServer().getFdMessage(_monitor[i].ident).clear();
 			}
 		}
 	}
@@ -100,12 +117,11 @@ void Handler::makeProtocol(int fd) {
 		std::string data = _msgMap[fd].first.substr(0, delimiter);
 		_msgMap[fd].first.erase(0, delimiter + 1);
 		_msgMap[fd].second = data;
-		if (data == "")
-			continue;
+        if (data == "")
+            break ;
 		data.clear();
 	}
 }
-
 
 void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &data) {
 	if (_fd_flags.find(fd) != _fd_flags.end()) {

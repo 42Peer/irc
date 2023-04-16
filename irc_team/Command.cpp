@@ -257,6 +257,11 @@ void Part::run(int fd, std::vector<std::string> args) {
 }
 
 void User::run(int fd, std::vector<std::string> args) {
+    std::cout << "user income " << std::endl;
+    for (int i = 0; i < args.size(); ++i) {
+        std::cout << args[i] << " ";
+    }
+    std::cout << "\n";
 	if (this->_handler.getFdflags().find(fd) == this->_handler.getFdflags().end()){
 		this->_handler.getServer().setFdMessage(fd, ERR462);
 		return ;
@@ -267,10 +272,11 @@ void User::run(int fd, std::vector<std::string> args) {
 	info.name = args[0];
 	info.real = args[3];
 	this->_handler.getFdflags().erase(fd);
-	this->_handler.getServer().setFdMessage(fd, MSGGREETING);
+	this->_handler.getServer().setFdMessage(fd, CODEGREET + name +  MSGGREETING);
 }
 
 void Pass::run(int fd, std::vector<std::string> args) {
+    std::cout << "PASS\n";
 	if (this->_handler.getFdflags().find(fd) == this->_handler.getFdflags().end()){
 		this->_handler.getServer().setFdMessage(fd, ERR462);
 	}

@@ -23,6 +23,7 @@
 #define MSGPRIVMSG " PRIVMSG :"
 #define MSGKICK " NICK :"
 #define MSGPART " PART :"
-#define MSGGREETING "001 :Welcome to IRC server:\r\n"
+#define MSGGREETING ":Welcome to IRC server\r\n"
+#define CODEGREET "001 "
 
 #endif /* __MESSAGE_HPP_ */
