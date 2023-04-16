@@ -1,6 +1,7 @@
-#ifndef BASEHEADER_H
-# define BASEHEADER_H
+#ifndef BASEHEADER_HPP
+# define BASEHEADER_HPP
 
+#include <algorithm>
 #include <cstdlib>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -21,4 +22,4 @@
 #include <vector>
 #include <netinet/in.h>
 
-#endif /* BASEHEADER_H */
+#endif /* BASEHEADER_HPP */

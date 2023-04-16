@@ -1,55 +1,4 @@
-#include "Parsing.h"
-
-int checkCommand(std::string);
-int splitByComma(int, std::vector<std::string> &);
-int splitMessageCommand(int, std::string, std::vector<std::string> &);
-void splitOtherCommand(std::string, std::vector<std::string> &);
-void deleteExceededArgs(std::vector<std::string> &v, int size, int &ctype);
-
-std::pair<int, std::vector<std::string> > parseData(std::string buf) {
-	std::vector<std::string> ret_vector;
-	std::pair<int, std::vector<std::string> > ret;
-	int cmd_type(0);
-
-	std::string cmd, data;
-	std::istringstream stream;
-	int i(0);
-
-	stream.str(buf);
-	std::getline(stream, cmd, ' ');
-	cmd_type = checkCommand(cmd);
-	if (cmd_type == INVAILDCMD || cmd_type == CAP) {
-	ret_vector.push_back(buf);
-	ret = std::pair<int, std::vector<std::string> >(cmd_type, ret_vector);
-		return (ret);
-	} else if (buf.size() == cmd.size())
-		data = "";
-	else {
-		i = cmd.size();
-		while (buf[i] != '\0' && buf[i] == ' ')
-		++i;
-		data = buf.substr(i);
-	}
-
-	splitOtherCommand(data, ret_vector);
-
-	if (cmd_type == QUIT && (ret_vector.size() != 1 && ret_vector.size() != 0))
-		deleteExceededArgs(ret_vector, 1, cmd_type);
-	else if ((cmd_type == JOIN || cmd_type == NICK || cmd_type == PART || cmd_type == PASS) && ret_vector.size() != 1)
-	  deleteExceededArgs(ret_vector, 1, cmd_type);
-	else if (cmd_type == KICK && (ret_vector.size() != 2 && ret_vector.size() != 3))
-	  deleteExceededArgs(ret_vector, 3, cmd_type);
-	else if (cmd_type == USER && ret_vector.size() != 4)
-	  deleteExceededArgs(ret_vector, 4, cmd_type);
-	else if ((cmd_type == PRIVMSG || cmd_type == NOTICE) &&	ret_vector.size() != 2)
-	  deleteExceededArgs(ret_vector, 2, cmd_type);
-
-	if (cmd_type == JOIN || cmd_type == PART || cmd_type == PRIVMSG)
-		cmd_type = splitByComma(cmd_type, ret_vector);
-
-	ret = std::pair<int, std::vector<std::string> >(cmd_type, ret_vector);
-	return (ret);
-}
+#include "Parsing.hpp"
 
 void deleteExceededArgs(std::vector<std::string> &v, int size, int &ctype) {
   if (v.size() > size) {
@@ -83,7 +32,7 @@ void splitOtherCommand(std::string data, std::vector<std::string> &args) {
 	temp.erase(0, 1);
 	std::cout << temp.size() << '\n';
 	std::cout << temp << '\n';
-		args.push_back(temp);
+	args.push_back(temp);
   }
 }
 
@@ -132,4 +81,49 @@ int checkCommand(std::string cmd) {
 		return (CAP);
 	else
 		return (INVAILDCMD);
+}
+
+std::pair<int, std::vector<std::string> > parseData(std::string buf) {
+	std::vector<std::string> ret_vector;
+	std::pair<int, std::vector<std::string> > ret;
+	int cmd_type(0);
+
+	std::string cmd, data;
+	std::istringstream stream;
+	int i(0);
+
+	stream.str(buf);
+	std::getline(stream, cmd, ' ');
+	cmd_type = checkCommand(cmd);
+	if (cmd_type == INVAILDCMD || cmd_type == CAP) {
+		ret_vector.push_back(cmd);
+		ret = std::pair<int, std::vector<std::string> >(cmd_type, ret_vector);
+		return (ret);
+	} else if (buf.size() == cmd.size())
+		data = "";
+	else {
+		i = cmd.size();
+		while (buf[i] != '\0' && buf[i] == ' ')
+		++i;
+		data = buf.substr(i);
+	}
+
+	splitOtherCommand(data, ret_vector);
+
+	if (cmd_type == QUIT && (ret_vector.size() != 1 && ret_vector.size() != 0))
+		deleteExceededArgs(ret_vector, 1, cmd_type);
+	else if ((cmd_type == JOIN || cmd_type == NICK || cmd_type == PART || cmd_type == PASS) && ret_vector.size() != 1)
+		deleteExceededArgs(ret_vector, 1, cmd_type);
+	else if (cmd_type == KICK && (ret_vector.size() != 2 && ret_vector.size() != 3))
+		deleteExceededArgs(ret_vector, 3, cmd_type);
+	else if (cmd_type == USER && ret_vector.size() != 4)
+		deleteExceededArgs(ret_vector, 4, cmd_type);
+	else if ((cmd_type == PRIVMSG || cmd_type == NOTICE) &&	ret_vector.size() != 2)
+		deleteExceededArgs(ret_vector, 2, cmd_type);
+
+	if (cmd_type == JOIN || cmd_type == PART || cmd_type == PRIVMSG)
+		cmd_type = splitByComma(cmd_type, ret_vector);
+
+	ret = std::pair<int, std::vector<std::string> >(cmd_type, ret_vector);
+	return (ret);
 }
