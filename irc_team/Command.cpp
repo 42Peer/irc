@@ -39,26 +39,26 @@ void Notice::run(int fd, std::vector<std::string> args) {
 
 
 void Join::run(int fd, std::vector<std::string> args) {
-	std::vector<std::string>::iterator it_channel_name = args.begin();
-	std::vector<std::string>::iterator eit = args.end();
-	std::string nick_name = this->_handler.getServer().getUserName(fd);
+	std::string nick_name(this->_handler.getServer().getUserName(fd));
 	std::string buf("");
-	for (int i = 0; it_channel_name != eit; ++it_channel_name, ++i) {
+	for (int i = 0; i < args.size(); ++i) {
 		if (args[i][0] != '#') {
 			this->_handler.getServer().setFdMessage(fd, ERR476);
 			return;
 		} else {
-			this->_handler.getServer().g_db.addChannelUser(this->_handler.getServer().g_db.getUserTable().getUser(nick_name), *it_channel_name);
-			buf.append(":" + nick_name + MSGJOIN + *it_channel_name + "\r\n");
-			// 채널에 속한 유저들에게 똑같은 메세지를 send() 해줘야함
-			std::vector<std::string> userList = this->_handler.getServer().g_db.getCorrectChannel(*it_channel_name).getUserList();
-			std::vector<std::string>::iterator it_users = userList.begin();
-			std::vector<std::string>::iterator eit_users = userList.end();
+			struct s_user_info& curr_user = this->_handler.getServer().g_db.getUserTable().getUser(nick_name);
+			this->_handler.getServer().g_db.addChannelUser(curr_user, args[i]);
+			ChannelData chn = this->_handler.getServer().g_db.getCorrectChannel(args[i]);
+
+			buf = ":" + nick_name + MSGJOIN + args[i] + "\r\n";
+
+			std::vector<std::string> user_list = chn.getUserList();
 			int receiver(0);
-			for (; it_users != eit_users; ++it_users) {
-				receiver = this->_handler.getServer().g_db.getUserTable().getUser(*it_users).fd;
+			for (int j = 0; j < user_list.size(); ++j) {
+				receiver = this->_handler.getServer().g_db.getUserTable().getUser(user_list[j]).fd;
 				this->_handler.getServer().setFdMessage(receiver, buf);
 			}
+			buf.clear();
 		}
 	}
 }
@@ -67,31 +67,31 @@ void Join::run(int fd, std::vector<std::string> args) {
 void Nick::run(int fd, std::vector<std::string> args) {
 	std::string buf("");
 	std::string new_nick = args[0];
-	if (new_nick[0] == '#') {
+	if (new_nick[0] == '#' || new_nick.find(',') != std::string::npos || new_nick.find(' ') != std::string::npos) {
 		this->_handler.getServer().setFdMessage(fd, ERR432);
 		return;
 	}
-	if (this->_handler.getServer().g_db.getUserTable().isExist(new_nick)) {
+	else if (this->_handler.getServer().g_db.getUserTable().isExist(new_nick)) {
 		this->_handler.getServer().setFdMessage(fd, ERR433);
 		return;
 	} else {
+		struct s_user_info new_user_info;
+		new_user_info.nick = new_nick;
 		if (this->_handler.getFdflags().find(fd) != this->_handler.getFdflags().end() && \
 			this->_handler.getFdflags()[fd] == 1) {
+			new_user_info.fd = fd;
 			this->_handler.setFdFlags(fd, 2);
-			this->_handler.getServer().g_db.getUserTable().getUser(new_nick).fd = fd;
+			this->_handler.getServer().g_db.getUserTable().addUser(new_user_info);
 		}
 		else{
 			std::string old_name = this->_handler.getServer().getUserName(fd);
 			s_user_info old_user_info = this->_handler.getServer().g_db.getUserTable().getUser(old_name);
-			s_user_info new_user_info;
-			new_user_info.nick = new_nick;
 			new_user_info.name = old_user_info.name;
 			new_user_info.fd = old_user_info.fd;
 
 			this->_handler.getServer().g_db.updateUser(old_user_info, new_user_info);
 			buf.append(":" + this->_handler.getServer().getUserName(fd) + MSGNICK + new_nick + "\r\n");
 
-		// 같은 채널 사람들에게 보여주기
 			std::string current_channel = this->_handler.getServer().g_db.getUserTable().getChannelList(new_user_info);
 			std::vector<std::string> users_in_current_channel = this->_handler.getServer().g_db.getCorrectChannel(current_channel).getUserList();
 			std::vector<std::string>::iterator it_users = users_in_current_channel.begin();
@@ -217,41 +217,26 @@ void Kick::run(int fd, std::vector<std::string> args) {
 }
 
 void Part::run(int fd, std::vector<std::string> args) {
-
 	std::string name = this->_handler.getServer().getUserName(fd);
-
-	if (this->_handler.getServer().g_db.getUserTable().getUser(name).channel_list.size() == 0) {
-		_handler.getServer().setFdMessage(fd, ERR442);
-		return;
-	} else if (!args.size()) {
-		std::string current_channel = this->_handler.getServer().g_db.getUserTable().getUser(name).channel_list.back();
-		this->_handler.getServer().g_db.getUserTable().removeChannel(this->_handler.getServer().g_db.getUserTable().getUser(name),current_channel);
-	} else {
-		std::vector<std::string>::iterator it = args.begin();
-		while (it != args.end()) {
-				ChannelData& chn = this->_handler.getServer().g_db.getCorrectChannel(*it);
-				if (chn.getUserList()[0] == "") {
-						this->_handler.getServer().g_db.channelClear(*it);
-						_handler.getServer().setFdMessage(fd, ERR403);
-						_handler.getServer().setFdMessage(fd, *it);
-						_handler.getServer().g_db.channelClear(*it);
-				} else {
-						std::vector<std::string> channel_user = chn.getUserList();
-						size_t i;
-						for (i = 0; i < channel_user.size(); ++i) {
-								if (channel_user[i] == name) {
-										break ;
-								}
-						}
-						if (i == channel_user.size()) {
-								_handler.getServer().setFdMessage(fd, ERR442);
-								_handler.getServer().setFdMessage(fd, *it);
-						} else {
-								chn.removeData(name);
-								this->_handler.getServer().g_db.getUserTable().removeChannel(this->_handler.getServer().g_db.getUserTable().getUser(name), *it);
-						}
-				}
-			++it;
+	std::vector<std::string>::iterator it = args.begin();
+	for (size_t index = 0; index < args.size(); ++index){
+		ChannelData& chn = this->_handler.getServer().g_db.getCorrectChannel(args[index]);
+		if (chn.getUserList().size() == 0) {
+				_handler.getServer().setFdMessage(fd, ERR403);
+		} else {
+			struct s_user_info user_info = this->_handler.getServer().g_db.getUserTable().getUser(name);
+			std::vector<std::string> channel_user = chn.getUserList();
+			size_t i(0);
+			for (; i < channel_user.size(); ++i) {
+				if (channel_user[i] == name)
+					break ;
+			}
+			if (i == channel_user.size())
+				_handler.getServer().setFdMessage(fd, ERR442);
+			else {
+				chn.removeData(name);
+				this->_handler.getServer().g_db.getUserTable().removeChannel(user_info, args[index]);
+			}
 		}
 	}
 }
