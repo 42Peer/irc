@@ -22,8 +22,11 @@ public:
 		if (isExist(user.nick)) {
 			return false;
 		}
-		int privileges = grantUser();
-		_tables.insert(std::pair<std::string, int>(user.nick, privileges));
+		else if (_tables.find(user.nick) == _tables.end()){
+			int privileges = grantUser();
+			_tables[user.nick] = privileges;
+		}
+		// _tables.insert(std::pair<std::string, int>(user.nick, privileges));
 		return true;
 	}
 
@@ -91,20 +94,14 @@ public:
 	void removeUser(std::string key) { _tables.erase(key); }
 
 	void addChannel(struct s_user_info &usr, const std::string &channel_name) {
-		if (isExist(usr.nick)) {
-			for (size_t i = 0; i < _tables[usr.nick].channel_list.size(); ++i) {
-				if (_tables[usr.nick].channel_list[i] == channel_name) {
-					_tables[usr.nick].channel_list.erase(
-							_tables[usr.nick].channel_list.begin() + i);
-				}
-			}
-		}
+		std::vector<std::string>::iterator it = std::find(getUser(usr.nick).channel_list.begin(), getUser(usr.nick).channel_list.end(), channel_name);
+		if (it != getUser(usr.nick).channel_list.end())
+			getUser(usr.nick).channel_list.erase(it);
 		_tables[usr.nick].channel_list.push_back(channel_name);
 	}
 
 	void removeChannel(struct s_user_info &usr, const std::string &channel_name) {
-		std::vector<std::string>::iterator viter =
-				_tables[usr.nick].channel_list.begin();
+		std::vector<std::string>::iterator viter = _tables[usr.nick].channel_list.begin();
 
 		for (; viter != _tables[usr.nick].channel_list.end(); ++viter) {
 			if (*viter == channel_name) {
@@ -206,13 +203,12 @@ public:
 		return true;
 	}
 
-	void addChannelUser(struct s_user_info &usr,
-											const std::string &channel_name) {
+	void addChannelUser(struct s_user_info &usr, const std::string &channel_name) {
 		if (!user_table.isExist(usr.nick)) {
 			user_table.addUser(usr);
 		}
-		user_table.addChannel(usr, channel_name);
 		getCorrectChannel(channel_name).addData(usr);
+		getUserTable().addChannel(usr, channel_name);
 	}
 
 	void channelClear(const std::string &key) {

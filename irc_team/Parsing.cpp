@@ -57,6 +57,9 @@ int splitByComma(int ctype, std::vector<std::string> &args) {
 }
 
 int checkCommand(std::string cmd) {
+	// if (cmd[0] == '/')
+	// 	cmd.erase(0,1);
+
 	if (cmd == "NOTICE")
 		return (NOTICE);
 	else if (cmd == "JOIN")
