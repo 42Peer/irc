@@ -128,6 +128,8 @@ void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &d
 		{
 			if (data.first == INVAILDCMD)
 				this->getServer().setFdMessage(fd, ERR421 + data.second[0] + "\n");
+			else if (data.first == WRONGARG)
+				this->getServer().setFdMessage(fd, ERR461);
 			else
 				this->getServer().setFdMessage(fd, ERR451);
 		}
@@ -155,12 +157,18 @@ void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &d
 		case NOTICE:
 			cmd = new Notice(*this);
 			break;
-		case CAP:
+		case USER:
+			cmd = new User(*this);
+			break;
+		case PASS:
+			cmd = new Pass(*this);
 			break;
 		default:
 			{
 				if (data.first == WRONGARG)
 					this->getServer().setFdMessage(fd, ERR461);
+				else if (data.first == CAP)
+					return ;
 				else
 					this->getServer().setFdMessage(fd, ERR421 + data.second[0] + "\n");
 				return;
