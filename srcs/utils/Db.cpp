@@ -22,7 +22,7 @@ bool ChannelData::addData(struct s_user_info &user) {
 	return true;
 }
 
-bool ChannelData::isEmpty() const { return (!_tables.empty()); }
+bool ChannelData::isEmpty() const { return (_tables.empty()); }
 
 bool ChannelData::findUser(const std::string &key) {
 	std::map<std::string, int>::iterator iter = _tables.begin();

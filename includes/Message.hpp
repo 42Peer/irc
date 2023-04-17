@@ -9,6 +9,7 @@
 #define ERR421 "421 :Unknown Command: "
 #define ERR432 "432 :Erroneus nickname\r\n"
 #define ERR433 "433 :Nickname is already in use:\r\n"
+#define ERR441 "441 :They aren't on that channel\r\n"
 #define ERR442 "442 :You're not on that channel:\r\n"
 #define ERR451 "451 :You have not registered:\r\n"
 #define ERR461 "461 :Not enough parameters:\r\n"
