@@ -19,6 +19,9 @@ enum {
 	PASS, /* arg : 1 password */
 	USER, /* arg : 4 username hostname servername realname */
 	CAP,
+	MODE,
+	WHOIS,
+	PING,
 };
 
 std::pair<int, std::vector<std::string> > parseData(std::string buf);

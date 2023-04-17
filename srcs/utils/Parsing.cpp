@@ -55,9 +55,6 @@ int splitByComma(int ctype, std::vector<std::string> &args) {
 }
 
 int checkCommand(std::string cmd) {
-	// if (cmd[0] == '/')
-	// 	cmd.erase(0,1);
-
 	if (cmd == "NOTICE")
 		return (NOTICE);
 	else if (cmd == "JOIN")
@@ -80,6 +77,12 @@ int checkCommand(std::string cmd) {
 		return (USER);
 	else if (cmd == "CAP")
 		return (CAP);
+	else if (cmd == "MODE")
+		return (MODE);
+	else if (cmd == "WHOIS")
+		return (WHOIS);
+	else if (cmd == "PING")
+		return (PING);
 	else
 		return (INVAILDCMD);
 }
@@ -96,7 +99,7 @@ std::pair<int, std::vector<std::string> > parseData(std::string buf) {
 	stream.str(buf);
 	std::getline(stream, cmd, ' ');
 	cmd_type = checkCommand(cmd);
-	if (cmd_type == INVAILDCMD || cmd_type == CAP) {
+	if (cmd_type == INVAILDCMD || cmd_type == CAP || cmd_type == WHOIS || cmd_type == PING || cmd_type == MODE) {
 		ret_vector.push_back(cmd);
 		ret = std::pair<int, std::vector<std::string> >(cmd_type, ret_vector);
 		return (ret);
