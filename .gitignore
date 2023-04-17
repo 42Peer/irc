@@ -1,0 +1,6 @@
+.vscode/
+.idea/
+**/*.o
+**/*.d
+ircserv
+objs/
