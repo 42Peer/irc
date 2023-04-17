@@ -20,7 +20,7 @@ std::vector<std::string> getChannelUser(Db &db, std::string name) {
 }
 
 void Notice::run(int fd, std::vector<std::string> args) {
-	std::vector<std::string>::iterator it = args.begin();
+	// std::vector<std::string>::iterator it = args.begin();
 	std::string buf("");
 	if (args.front()[0] == '#') {
 		buf.append(ERR404);
@@ -41,7 +41,7 @@ void Notice::run(int fd, std::vector<std::string> args) {
 void Join::run(int fd, std::vector<std::string> args) {
 	std::string nick_name(this->_handler.getServer().getUserName(fd));
 	std::string buf("");
-	for (int i = 0; i < args.size(); ++i) {
+	for (size_t i = 0; i < args.size(); ++i) {
 		if (args[i][0] != '#') {
 			this->_handler.getServer().setFdMessage(fd, ERR476);
 			return;
@@ -54,7 +54,7 @@ void Join::run(int fd, std::vector<std::string> args) {
 
 			std::vector<std::string> user_list = chn.getUserList();
 			int receiver(0);
-			for (int j = 0; j < user_list.size(); ++j) {
+			for (size_t j = 0; j < user_list.size(); ++j) {
 				receiver = this->_handler.getServer().g_db.getUserTable().getUser(user_list[j]).fd;
 				this->_handler.getServer().setFdMessage(receiver, buf);
 			}
@@ -122,7 +122,7 @@ std::vector<bool> duplicated_args(std::vector<std::string>& args) {
 	std::map<std::string, int> check;
 	std::vector<bool> ret_arg;
 	ret_arg.resize(args.size() - 1);
-	int cnt = 0;
+	// int cnt = 0;
 	for (size_t i = 0; i < args.size() - 1; ++i) {
 		int tmp = check[args[i]];
 		if (tmp != 0) {
@@ -218,7 +218,7 @@ void Kick::run(int fd, std::vector<std::string> args) {
 
 void Part::run(int fd, std::vector<std::string> args) {
 	std::string name = this->_handler.getServer().getUserName(fd);
-	std::vector<std::string>::iterator it = args.begin();
+	// std::vector<std::string>::iterator it = args.begin();
 	for (size_t index = 0; index < args.size(); ++index){
 		ChannelData& chn = this->_handler.getServer().g_db.getCorrectChannel(args[index]);
 		if (chn.getUserList().size() == 0) {
@@ -242,11 +242,6 @@ void Part::run(int fd, std::vector<std::string> args) {
 }
 
 void User::run(int fd, std::vector<std::string> args) {
-    std::cout << "user income " << std::endl;
-    for (int i = 0; i < args.size(); ++i) {
-        std::cout << args[i] << " ";
-    }
-    std::cout << "\n";
 	if (this->_handler.getFdflags().find(fd) == this->_handler.getFdflags().end()){
 		this->_handler.getServer().setFdMessage(fd, ERR462);
 		return ;
@@ -261,7 +256,6 @@ void User::run(int fd, std::vector<std::string> args) {
 }
 
 void Pass::run(int fd, std::vector<std::string> args) {
-    std::cout << "PASS\n";
 	if (this->_handler.getFdflags().find(fd) == this->_handler.getFdflags().end()){
 		this->_handler.getServer().setFdMessage(fd, ERR462);
 	}

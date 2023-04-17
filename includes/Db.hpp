@@ -1,7 +1,8 @@
 #ifndef DB_HPP
 #define DB_HPP
 
-#include "userStruct.h"
+#include "userStruct.hpp"
+#include <map>
 
 class ChannelData {
 public:
@@ -14,6 +15,8 @@ public:
     bool addData(struct s_user_info &user) ;
 
     bool isEmpty() const;
+
+    bool findUser(const std::string &key) ;
 
     void removeData(const std::string &nick) ;
 
