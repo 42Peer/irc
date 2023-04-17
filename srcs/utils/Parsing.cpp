@@ -30,8 +30,6 @@ void splitOtherCommand(std::string data, std::vector<std::string> &args) {
   }
 	if (flag){
 	temp.erase(0, 1);
-	std::cout << temp.size() << '\n';
-	std::cout << temp << '\n';
 	args.push_back(temp);
   }
 }

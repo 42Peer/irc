@@ -242,11 +242,6 @@ void Part::run(int fd, std::vector<std::string> args) {
 }
 
 void User::run(int fd, std::vector<std::string> args) {
-    std::cout << "user income " << std::endl;
-    for (size_t i = 0; i < args.size(); ++i) {
-        std::cout << args[i] << " ";
-    }
-    std::cout << "\n";
 	if (this->_handler.getFdflags().find(fd) == this->_handler.getFdflags().end()){
 		this->_handler.getServer().setFdMessage(fd, ERR462);
 		return ;
@@ -261,7 +256,6 @@ void User::run(int fd, std::vector<std::string> args) {
 }
 
 void Pass::run(int fd, std::vector<std::string> args) {
-    std::cout << "PASS\n";
 	if (this->_handler.getFdflags().find(fd) == this->_handler.getFdflags().end()){
 		this->_handler.getServer().setFdMessage(fd, ERR462);
 	}

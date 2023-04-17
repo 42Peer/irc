@@ -34,7 +34,6 @@ Handler::~Handler() {}
 
 
 void Handler::run(void) {
-	// std::cout << "socket server running... fd : " << _server.getServerSocket() << "\n";
 	std::map<int, std::string> tmp_data;
 
 	int evt;
@@ -46,7 +45,6 @@ void Handler::run(void) {
 
 		for (int i = 0; i < evt; ++i) {
 			if (_monitor[i].flags & EV_EOF) {
-				// std::cout << "Error: Client Disconnect\n";
 				close(_monitor[i].ident);
 			}
             else if (_monitor[i].flags & EV_ERROR) {
