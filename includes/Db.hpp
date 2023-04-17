@@ -1,7 +1,8 @@
 #ifndef DB_HPP
 #define DB_HPP
 
-#include "userStruct.h"
+#include "userStruct.hpp"
+#include <map>
 
 class ChannelData {
 public:
