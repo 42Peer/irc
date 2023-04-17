@@ -177,6 +177,9 @@ void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &d
 		case PASS:
 			cmd = new Pass(*this);
 			break;
+		case PING:
+			cmd = new Ping(*this);
+			break;
 		default:
 			{
 				if (data.first == WRONGARG)

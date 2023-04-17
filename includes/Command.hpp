@@ -77,4 +77,11 @@ public:
 	void run(int, std::vector<std::string>);
 };
 
+class Ping : public Command {
+public:
+	Ping(Handler &h) : Command(h){};
+	~Ping(){};
+	void run(int, std::vector<std::string>);
+};
+
 #endif /* __COMMAND_HPP_ */

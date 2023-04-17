@@ -267,3 +267,21 @@ void Pass::run(int fd, std::vector<std::string> args) {
 			this->_handler.setFdFlags(fd, 1);
 	}
 }
+
+void Ping::run(int fd, std::vector<std::string> args) {
+	std::string buf;
+	if (args.size() < 1) {
+		//not enough parameters
+		buf.append("461 ");
+		buf.append(this->_handler.getServer().getUserName(fd));
+		buf.append(" PING :Not enough parameters\r\n");
+		this->_handler.getServer().setFdMessage(fd, buf);
+		return ;
+	}
+	buf.append(":");
+	buf.append("FT_IRC");
+	buf.append(" PONG :");
+	buf.append(args[0]);
+	buf.append("\r\n");
+	this->_handler.getServer().setFdMessage(fd, buf);
+}

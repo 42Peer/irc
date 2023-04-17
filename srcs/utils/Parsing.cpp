@@ -99,7 +99,7 @@ std::pair<int, std::vector<std::string> > parseData(std::string buf) {
 	stream.str(buf);
 	std::getline(stream, cmd, ' ');
 	cmd_type = checkCommand(cmd);
-	if (cmd_type == INVAILDCMD || cmd_type == CAP || cmd_type == WHOIS || cmd_type == PING || cmd_type == MODE) {
+	if (cmd_type == INVAILDCMD || cmd_type == CAP || cmd_type == WHOIS || cmd_type == MODE) {
 		ret_vector.push_back(cmd);
 		ret = std::pair<int, std::vector<std::string> >(cmd_type, ret_vector);
 		return (ret);
@@ -116,7 +116,7 @@ std::pair<int, std::vector<std::string> > parseData(std::string buf) {
 
 	if (cmd_type == QUIT && (ret_vector.size() != 1 && ret_vector.size() != 0))
 		deleteExceededArgs(ret_vector, 1, cmd_type);
-	else if ((cmd_type == JOIN || cmd_type == NICK || cmd_type == PART || cmd_type == PASS) && ret_vector.size() != 1)
+	else if ((cmd_type == JOIN || cmd_type == NICK || cmd_type == PART || cmd_type == PASS || cmd_type == PING) && ret_vector.size() != 1)
 		deleteExceededArgs(ret_vector, 1, cmd_type);
 	else if (cmd_type == KICK && (ret_vector.size() != 2 && ret_vector.size() != 3))
 		deleteExceededArgs(ret_vector, 3, cmd_type);
