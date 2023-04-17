@@ -195,13 +195,16 @@ void Kick::run(int fd, std::vector<std::string> args) {
 	} else if (tmp_channel.getUserList().size() == 0){
 		this->_handler.getServer().setFdMessage(fd, ERR403); // Empty Channel
 		return ;
-	} else if (!tmp_channel.findUser(user_name) || !tmp_channel.findUser(target_name)){
+	} else if (!tmp_channel.findUser(user_name)){
 		this->_handler.getServer().setFdMessage(fd, ERR442); // Not in Channel
 		return ;
 	} else if (tmp_channel.getPrivileges(user_name) != 0){
 		this->_handler.getServer().setFdMessage(fd, ERR482);
 		return ;
-	} else if (args.size() == 3){
+	}else if (!tmp_channel.findUser(target_name)){
+		this->_handler.getServer().setFdMessage(fd, ERR441);
+		return ; 
+	}else if (args.size() == 3){
 		msg = args.back();
 	}
 	std::string buf("");
