@@ -1,5 +1,6 @@
 # pseudo_code
 
+```cpp
 struct user_data {
 	_user_name
 	_socket_id
@@ -48,3 +49,4 @@ private:
 
 setKevent()
 
+```
