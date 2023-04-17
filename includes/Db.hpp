@@ -16,6 +16,8 @@ public:
 
     bool isEmpty() const;
 
+    bool findUser(const std::string &key) ;
+
     void removeData(const std::string &nick) ;
 
     std::vector<std::string> getUserList() ;

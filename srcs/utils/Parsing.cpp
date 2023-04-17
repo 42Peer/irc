@@ -1,6 +1,6 @@
 #include "Parsing.hpp"
 
-void deleteExceededArgs(std::vector<std::string> &v, int size, int &ctype) {
+void deleteExceededArgs(std::vector<std::string> &v, size_t size, int &ctype) {
   if (v.size() > size) {
 	while (v.size() != size)
 		v.pop_back();
