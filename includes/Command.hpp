@@ -33,6 +33,7 @@ public:
 	Nick(Handler &h) : Command(h){};
 	~Nick() {};
 	void run(int, std::vector<std::string>);
+	bool isValidName(const std::string&);
 };
 
 class Quit : public Command {

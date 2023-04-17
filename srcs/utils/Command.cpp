@@ -67,12 +67,22 @@ void Join::run(int fd, std::vector<std::string> args) {
 void Nick::run(int fd, std::vector<std::string> args) {
 	std::string buf("");
 	std::string new_nick = args[0];
-	if (new_nick[0] == '#' || new_nick.find(',') != std::string::npos || new_nick.find(' ') != std::string::npos) {
+	if (!isValidName(new_nick)) {
+		buf.append("432 ");
+		buf.append(this->_handler.getServer().getUserName(fd));
+		buf.append(" ");
+		buf.append(new_nick);
+		buf.append(" :Erroneus nickname\r\n");
 		this->_handler.getServer().setFdMessage(fd, ERR432);
 		return;
 	}
 	else if (this->_handler.getServer().g_db.getUserTable().isExist(new_nick)) {
-		this->_handler.getServer().setFdMessage(fd, ERR433);
+		buf.append("433 ");
+		buf.append(this->_handler.getServer().getUserName(fd));
+		buf.append(" ");
+		buf.append(new_nick);
+		buf.append(" :Nickname is already in use\r\n");
+		this->_handler.getServer().setFdMessage(fd, buf);
 		return;
 	} else {
 		struct s_user_info new_user_info;
@@ -90,20 +100,39 @@ void Nick::run(int fd, std::vector<std::string> args) {
 			new_user_info.fd = old_user_info.fd;
 
 			this->_handler.getServer().g_db.updateUser(old_user_info, new_user_info);
-			buf.append(":" + this->_handler.getServer().getUserName(fd) + MSGNICK + new_nick + "\r\n");
 
-			std::string current_channel = this->_handler.getServer().g_db.getUserTable().getChannelList(new_user_info);
-			std::vector<std::string> users_in_current_channel = this->_handler.getServer().g_db.getCorrectChannel(current_channel).getUserList();
-			std::vector<std::string>::iterator it_users = users_in_current_channel.begin();
-			std::vector<std::string>::iterator eit_users = users_in_current_channel.end();
-			int receiver(0);
-			for (; it_users < eit_users; ++it_users) {
-				receiver = this->_handler.getServer().g_db.getUserTable().getUser(*it_users).fd;
-				this->_handler.getServer().setFdMessage(receiver, buf);
-			}
+			buf.append(":");
+			buf.append(this->_handler.getServer().getUserName(fd));
+			buf.append(" NICK ");
+			buf.append(new_nick);
+			buf.append("\r\n");
+			this->_handler.getServer().setFdMessage(fd, buf);
+			// std::string current_channel = this->_handler.getServer().g_db.getUserTable().getChannelList(new_user_info);
+			// std::vector<std::string> users_in_current_channel = this->_handler.getServer().g_db.getCorrectChannel(current_channel).getUserList();
+			// std::vector<std::string>::iterator it_users = users_in_current_channel.begin();
+			// std::vector<std::string>::iterator eit_users = users_in_current_channel.end();
+			// int receiver(0);
+			// for (; it_users < eit_users; ++it_users) {
+			// 	receiver = this->_handler.getServer().g_db.getUserTable().getUser(*it_users).fd;
+			// 	this->_handler.getServer().setFdMessage(receiver, buf);
+			// }
 		}
 		this->_handler.getServer().setMapData(fd, new_nick);
 	}
+}
+
+bool Nick::isValidName(const std::string& name) {
+	// https://modern.ircdocs.horse/#clients
+	if (name.find(' ') != std::string::npos ||
+	name.find(',') != std::string::npos ||
+	name.find('*') != std::string::npos ||
+	name.find('?') != std::string::npos ||
+	name.find('!') != std::string::npos ||
+	name.find('@') != std::string::npos ||
+	name.find('.') != std::string::npos ||
+	name[0] == '$' || name[0] == ':' || name[0] == '#' || name[0] == '&')
+		return false;
+	return true;
 }
 
 
