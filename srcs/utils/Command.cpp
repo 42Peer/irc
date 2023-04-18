@@ -31,7 +31,7 @@ void Notice::run(int fd, std::vector<std::string> args) {
 		this->_handler.getServer().setFdMessage(fd, buf);
 	}
 	else {
-		buf.append(":" + this->_handler.getServer().getUserName(fd) + MSGNOTICE + args.front() + " :" + args.back() + "\r\n");
+		buf.append(":" + this->_handler.getServer().getUserName(fd) + " NOTICE " + args.front() + " :" + args.back() + "\r\n");
 		int receiver = this->_handler.getServer().g_db.getUserTable().getUser(args.front()).fd;
 		this->_handler.getServer().setFdMessage(receiver, buf);
 	}
@@ -46,7 +46,13 @@ void Join::run(int fd, std::vector<std::string> args) {
 		if ((args[i][0] != '#' && args[i][0] != '&') || args[i].find(0x07) != std::string::npos) {
 			this->_handler.getServer().setFdMessage(fd, ERR476);
 			continue;
-		} else {
+		}
+		// 같은 채널에 조인하려고 했을때
+		if (this->_handler.getServer().g_db.getUserTable().getUser(nick_name).channel_list.size() > 0
+				&& this->_handler.getServer().g_db.getUserTable().getUser(nick_name).channel_list.back() == args[i]) {
+			continue;
+		}
+		else {
 			struct s_user_info& curr_user = this->_handler.getServer().g_db.getUserTable().getUser(nick_name);
 			this->_handler.getServer().g_db.addChannelUser(curr_user, args[i]);
 			ChannelData chn = this->_handler.getServer().g_db.getCorrectChannel(args[i]);
@@ -80,11 +86,7 @@ void Nick::run(int fd, std::vector<std::string> args) {
 	std::string buf("");
 	std::string new_nick = args[0];
 	if (!isValidName(new_nick)) {
-		buf.append("432 ");
-		buf.append(this->_handler.getServer().getUserName(fd));
-		buf.append(" ");
-		buf.append(new_nick);
-		buf.append(" :Erroneus nickname\r\n");
+		buf.append("432 " + this->_handler.getServer().getUserName(fd) + " " + new_nick + " :Erroneus nickname\r\n");
 		this->_handler.getServer().setFdMessage(fd, ERR432);
 		return;
 	}
@@ -108,7 +110,7 @@ void Nick::run(int fd, std::vector<std::string> args) {
 			this->_handler.setFdFlags(fd, 2);
 			this->_handler.getServer().g_db.getUserTable().addUser(new_user_info);
 		}
-		else{
+		else {
 			std::string old_name = this->_handler.getServer().getUserName(fd);
 			s_user_info old_user_info = this->_handler.getServer().g_db.getUserTable().getUser(old_name);
 			new_user_info.name = old_user_info.name;
@@ -116,24 +118,19 @@ void Nick::run(int fd, std::vector<std::string> args) {
 
 			this->_handler.getServer().g_db.updateUser(old_user_info, new_user_info);
 
-			buf.append(":");
-			buf.append(this->_handler.getServer().getUserName(fd));
-			buf.append(" NICK ");
-			buf.append(new_nick);
-			buf.append("\r\n");
-			this->_handler.getServer().setFdMessage(fd, buf);
-			// std::string current_channel = this->_handler.getServer().g_db.getUserTable().getChannelList(new_user_info);
-			// std::vector<std::string> users_in_current_channel = this->_handler.getServer().g_db.getCorrectChannel(current_channel).getUserList();
-			// std::vector<std::string>::iterator it_users = users_in_current_channel.begin();
-			// std::vector<std::string>::iterator eit_users = users_in_current_channel.end();
-			// int receiver(0);
-			// for (; it_users < eit_users; ++it_users) {
-			// 	receiver = this->_handler.getServer().g_db.getUserTable().getUser(*it_users).fd;
-			// 	this->_handler.getServer().setFdMessage(receiver, buf);
-			// }
+			buf.append(":" + this->_handler.getServer().getUserName(fd) + " NICK :" + new_nick + "\r\n");
+//			this->_handler.getServer().setFdMessage(fd, buf);
+
+//			나 포함 동일 채널의 사람들에게 닉네임 변경 사실 알려주기
+			std::string current_channel = this->_handler.getServer().g_db.getUserTable().getChannelList(new_user_info);
+			std::vector<std::string> users_in_current_channel = this->_handler.getServer().g_db.getCorrectChannel(current_channel).getUserList();
+			int receiver(0);
+			for (size_t i = 0; i < users_in_current_channel.size(); ++i)
+			 	receiver = this->_handler.getServer().g_db.getUserTable().getUser(users_in_current_channel[i]).fd;
+			 	this->_handler.getServer().setFdMessage(receiver, buf);
 		}
-		this->_handler.getServer().setMapData(fd, new_nick);
 	}
+	this->_handler.getServer().setMapData(fd, new_nick);
 }
 
 bool Nick::isValidName(const std::string& name) {
@@ -153,10 +150,26 @@ bool Nick::isValidName(const std::string& name) {
 
 
 void Quit::run(int fd, std::vector<std::string> args) {
-	(void)args;
 	std::string usr_name = this->_handler.getServer().getUserName(fd);
 	struct s_user_info usr_name_info =
 			this->_handler.getServer().g_db.getUserTable().getUser(usr_name);
+
+//	QUIT jujeon QUIT :Quit: hi
+//	채널 안의 멤버들에게도 메세지 보여주기
+//	일단보류
+//	ChannelData& chn = this->_handler.getServer().g_db.getCorrectChannel(args);
+//	std::vector<std::string> user_list = chn.getUserList();
+//	int receiver(0);
+//	for (size_t j = 0; j < user_list.size(); ++j) {
+//		receiver = this->_handler.getServer().g_db.getUserTable().getUser(user_list[j]).fd;
+//		this->_handler.getServer().setFdMessage(receiver, buf);
+//	}
+	std::string buf("");
+	if (!args.empty())
+		buf = "ERROR :Closing link: [QUIT:" + args[0] + "]\r\n";
+	else
+		buf = "ERROR :Closing link: [QUIT: Client exited]\r\n";
+	this->_handler.getServer().setFdMessage(fd, buf);
 	this->_handler.getServer().g_db.removeUser(usr_name_info);
 	this->_handler.getServer().removeMapData(fd);
 	close(fd);
@@ -250,9 +263,9 @@ void Kick::run(int fd, std::vector<std::string> args)
 			}
 			buf = "";
 			if (message == "")
-				buf.append("KICK : " + targets[j] + " from " + channels[i] + "\r\n");
+				buf.append(":" + name + " KICK : " + channels[i] + " " + targets[j] + " :" + name + "\r\n");
 			else
-				buf.append("KICK : " + targets[j] + " from " + channels[i] + " using " + message + " as the reason.\r\n");
+				buf.append(":" + name + "KICK : " + channels[i] + " " + targets[j] + " :" + message + "\r\n");
 			this->_handler.getServer().setFdMessage(fd, buf);
 			this->_handler.getServer().setFdMessage(this->_handler.getServer().g_db.getUserTable().getUser(targets[j]).fd, buf);	
 			target_info = this->_handler.getServer().g_db.getUserTable().getUser(targets[j]);
@@ -295,8 +308,20 @@ void Part::run(int fd, std::vector<std::string> args) {
 			if (i == channel_user.size())
 				_handler.getServer().setFdMessage(fd, ERR442);
 			else {
+//				:root!root@127.0.0.1 PART :#123
 				chn.removeData(name);
 				this->_handler.getServer().g_db.getUserTable().removeChannel(user_info, args[index]);
+				std::string buf("");
+				buf += ":" + name + " PART " + ":" + args[index] + "\r\n";
+				_handler.getServer().setFdMessage(fd, buf);
+
+				// 채널 안의 멤버들에게도 메세지 보여주기
+				std::vector<std::string> user_list = chn.getUserList();
+				int receiver(0);
+				for (size_t j = 0; j < user_list.size(); ++j) {
+					receiver = this->_handler.getServer().g_db.getUserTable().getUser(user_list[j]).fd;
+					this->_handler.getServer().setFdMessage(receiver, buf);
+				}
 			}
 		}
 	}
