@@ -50,9 +50,19 @@ void Join::run(int fd, std::vector<std::string> args) {
 			this->_handler.getServer().g_db.addChannelUser(curr_user, args[i]);
 			ChannelData chn = this->_handler.getServer().g_db.getCorrectChannel(args[i]);
 
-			buf = ":" + nick_name + MSGJOIN + args[i] + "\r\n";
-
+			// find the king in the channel
 			std::vector<std::string> user_list = chn.getUserList();
+			std::string king("");
+			for (size_t h = 0; h < user_list.size(); ++h) {
+				if (this->_handler.getServer().g_db.getCorrectChannel(args[i]).getPrivileges(user_list[h]) == 0) {
+					king = user_list[h];
+					break ;
+				}
+			}
+
+			buf = ":" + nick_name + MSGJOIN + args[i] + "\n"
+					+ ":" + SERVNAME	+ "353 " + nick_name + " = " + args[i] + " :@" + king + "\n"
+					+ ":" + SERVNAME + "366 " + nick_name + " " + args[i] + " :End of /NAMES list.\r\n";
 			int receiver(0);
 			for (size_t j = 0; j < user_list.size(); ++j) {
 				receiver = this->_handler.getServer().g_db.getUserTable().getUser(user_list[j]).fd;
