@@ -41,6 +41,7 @@ void Notice::run(int fd, std::vector<std::string> args) {
 void Join::run(int fd, std::vector<std::string> args) {
 	std::string nick_name(this->_handler.getServer().getUserName(fd));
 	std::string buf("");
+
 	for (size_t i = 0; i < args.size(); ++i) {
 		if (args[i][0] != '#') {
 			this->_handler.getServer().setFdMessage(fd, ERR476);
