@@ -33,6 +33,7 @@ public:
 	Nick(Handler &h) : Command(h){};
 	~Nick() {};
 	void run(int, std::vector<std::string>);
+	bool isValidName(const std::string&);
 };
 
 class Quit : public Command {
@@ -74,6 +75,13 @@ class Pass : public Command {
 public:
 	Pass(Handler &h) : Command(h){};
 	~Pass(){};
+	void run(int, std::vector<std::string>);
+};
+
+class Ping : public Command {
+public:
+	Ping(Handler &h) : Command(h){};
+	~Ping(){};
 	void run(int, std::vector<std::string>);
 };
 
