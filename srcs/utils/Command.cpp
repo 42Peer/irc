@@ -22,16 +22,23 @@ bool existInVector(std::vector<std::string> &vec, std::string value) {
 void Notice::run(int fd, std::vector<std::string> args) {
 	// std::vector<std::string>::iterator it = args.begin();
 	std::string buf("");
+	std::string my_name = this->_handler.getServer().getUserName(fd);
 	if (args.front()[0] == '#') {
-		buf.append(ERR404);
+//		:irc.local 404 jujeon nickname :No such nick
+		buf.append(": ");
+		buf.append(SERVNAME);
+		buf.append(ERR404 + my_name + " " + args[0] + MSG404 );
 		this->_handler.getServer().setFdMessage(fd, buf);
 	}
 	else if (this->_handler.getServer().g_db.getUserTable().isExist(args.front()) == false) {
-		buf.append(ERR401);
+//		:irc.local 401 jujeon nickname :No such nick
+		buf.append(": ");
+		buf.append(SERVNAME);
+		buf.append(ERR401 + my_name + " " + args[0] + MSG401);
 		this->_handler.getServer().setFdMessage(fd, buf);
 	}
 	else {
-		buf.append(":" + this->_handler.getServer().getUserName(fd) + " NOTICE " + args.front() + " :" + args.back() + "\r\n");
+		buf.append(":" + my_name + " NOTICE " + args.front() + " :" + args.back() + "\r\n");
 		int receiver = this->_handler.getServer().g_db.getUserTable().getUser(args.front()).fd;
 		this->_handler.getServer().setFdMessage(receiver, buf);
 	}
@@ -164,12 +171,14 @@ void Quit::run(int fd, std::vector<std::string> args) {
 //		receiver = this->_handler.getServer().g_db.getUserTable().getUser(user_list[j]).fd;
 //		this->_handler.getServer().setFdMessage(receiver, buf);
 //	}
-	std::string buf("");
-	if (!args.empty())
-		buf = "ERROR :Closing link: [QUIT:" + args[0] + "]\r\n";
-	else
-		buf = "ERROR :Closing link: [QUIT: Client exited]\r\n";
-	this->_handler.getServer().setFdMessage(fd, buf);
+
+//  이대로 하게 되면 클라이언트가 메세지를 출력받지 못하고 종료된다. 재접속시 QUIT 메세지가 출력되고 접속되는 문제발생.근본적인 구조 변경 필요.
+//	std::string buf("");
+//	if (!args.empty())
+//		buf = "ERROR :Closing link: [QUIT:" + args[0] + "]\r\n";
+//	else
+//		buf = "ERROR :Closing link: [QUIT: Client exited]\r\n";
+//	this->_handler.getServer().setFdMessage(fd, buf);
 	this->_handler.getServer().g_db.removeUser(usr_name_info);
 	this->_handler.getServer().removeMapData(fd);
 	close(fd);
