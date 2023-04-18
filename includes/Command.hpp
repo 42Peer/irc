@@ -49,6 +49,8 @@ public:
 	Privmsg(Handler &h) : Command(h){};
 	~Privmsg() {};
 	void run(int, std::vector<std::string>);
+private:
+	std::vector<bool> checkduplicatedArgs(std::vector<std::string>&);
 };
 
 class Kick : public Command {

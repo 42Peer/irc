@@ -12,12 +12,12 @@ bool existInVector(std::vector<std::string> &vec, std::string value) {
 	return (false);
 }
 
-std::vector<std::string> getChannelUser(Db &db, std::string name) {
-	struct s_user_info user_data;
-	user_data = db.getUserTable().getUser(name);
-	std::string channel_name = db.getUserTable().getChannelList(user_data);
-	return db.getCorrectChannel(channel_name).getUserList();
-}
+// std::vector<std::string> getChannelUser(Db &db, std::string name) {
+// 	struct s_user_info user_data;
+// 	user_data = db.getUserTable().getUser(name);
+// 	std::string channel_name = db.getUserTable().getChannelList(user_data);
+// 	return db.getCorrectChannel(channel_name).getUserList();
+// }
 
 void Notice::run(int fd, std::vector<std::string> args) {
 	// std::vector<std::string>::iterator it = args.begin();
@@ -157,7 +157,7 @@ void Quit::run(int fd, std::vector<std::string> args) {
 }
 
 
-std::vector<bool> duplicated_args(std::vector<std::string>& args) {
+std::vector<bool> Privmsg::checkduplicatedArgs(std::vector<std::string>& args) {
 	std::map<std::string, int> check;
 	std::vector<bool> ret_arg;
 	ret_arg.resize(args.size() - 1);
@@ -175,16 +175,15 @@ std::vector<bool> duplicated_args(std::vector<std::string>& args) {
 }
 
 void Privmsg::run(int fd, std::vector<std::string> args) {
-	std::vector<bool> res_args = duplicated_args(args);
+	std::vector<bool> res_args = checkduplicatedArgs(args);
 	std::vector<std::string> users;
 	UserData user = this->_handler.getServer().g_db.getUserTable();
 	std::string msg;
 	msg = ":" + this->_handler.getServer().getUserName(fd) + " PRIVMSG ";
 	for (size_t i = 0; i < args.size() - 1; ++i) {
 		if (!user.isExist(args[i])) {
-			if (args[i][0] == '#') {
-				ChannelData chn =
-						this->_handler.getServer().g_db.getCorrectChannel(args[i]);
+			if (args[i][0] == '#' || args[i][0] == '&') {
+				ChannelData chn = this->_handler.getServer().g_db.getCorrectChannel(args[i]);
 				if (!chn.findUser(this->_handler.getServer().getUserName(fd))){
 					this->_handler.getServer().setFdMessage(fd, ERR442);
 					continue;
@@ -196,11 +195,7 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
 				std::vector<std::string> user_lists = chn.getUserList();
 				for (size_t j = 0; j < user_lists.size(); ++j) {
 					this->_handler.getServer().setFdMessage(
-							user.getUser(user_lists[j]).fd,
-							msg + user_lists[j] + " :" + args.back() + ";\n\t" +
-									" Message from " +
-									this->_handler.getServer().getUserName(fd) + " to " +
-									user_lists[j] + "\r\n");
+							user.getUser(user_lists[j]).fd, msg + args[i] + " :" + args.back() + "\r\n");
 				}
 				continue;
 			}
@@ -212,10 +207,7 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
 			continue;
 		}
 		struct s_user_info cur_user = user.getUser(args[i]);
-		this->_handler.getServer().setFdMessage(
-				cur_user.fd, msg + cur_user.nick + " :" + args.back() + ";" +
-												 " Message from " + this->_handler.getServer().getUserName(fd) + " to " +
-												 cur_user.nick + "\r\n");
+		this->_handler.getServer().setFdMessage(cur_user.fd, msg + cur_user.nick + " :" + args.back() + ";\r\n");
 	}
 }
 
