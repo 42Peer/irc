@@ -219,48 +219,69 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
 	}
 }
 
-
-void Kick::run(int fd, std::vector<std::string> args) {
-	std::string msg("");
-	std::string channel_name = args[0];
-	std::string target_name = args[1];
-	std::string user_name = this->_handler.getServer().getUserName(fd);
-	ChannelData tmp_channel = _handler.getServer().g_db.getCorrectChannel(channel_name);
-	
-
-	if (channel_name[0] != '#') {
-		_handler.getServer().setFdMessage(fd, ERR476); // Channel Mask err
-		return;
-	} else if (tmp_channel.getUserList().size() == 0){
-		this->_handler.getServer().setFdMessage(fd, ERR403); // Empty Channel
-		return ;
-	} else if (!tmp_channel.findUser(user_name)){
-		this->_handler.getServer().setFdMessage(fd, ERR442); // Not in Channel
-		return ;
-	} else if (tmp_channel.getPrivileges(user_name) != 0){
-		this->_handler.getServer().setFdMessage(fd, ERR482);
-		return ;
-	}else if (!tmp_channel.findUser(target_name)){
-		this->_handler.getServer().setFdMessage(fd, ERR441);
-		return ; 
-	}else if (args.size() == 3){
-		msg = args.back();
-	}
+void Kick::run(int fd, std::vector<std::string> args)
+{
+	std::string name = this->_handler.getServer().getUserName(fd);
+	std::string message("");
 	std::string buf("");
-	if (msg == "")
-		buf.append("KICK : " + target_name + " from " + channel_name + "\r\n");
-	else
-		buf.append("KICK : " + target_name + " from " + channel_name + " using " + msg + " as the reason.\r\n");
-	
-	this->_handler.getServer().setFdMessage(fd, buf);
-	this->_handler.getServer().setFdMessage(this->_handler.getServer().g_db.getUserTable().getUser(target_name).fd, buf);
-	struct s_user_info target_info = this->_handler.getServer().g_db.getUserTable().getUser(target_name);
-	this->_handler.getServer().g_db.removeChannel(target_info, channel_name);
+	std::vector<std::string> channels = splitByComma(args[0]);
+	std::vector<std::string> targets = splitByComma(args[1]);
+	struct s_user_info target_info;
+
+	if (args.size() == 3)
+		message = args.back();
+	for(size_t i = 0; i < channels.size(); ++i){
+		ChannelData channel_data = _handler.getServer().g_db.getCorrectChannel(channels[i]);
+		if (channels[i][0] != '#' || channels[i].find(0x07) != std::string::npos){
+			this->_handler.getServer().setFdMessage(fd, ERR476); //channel mask
+			continue;
+		}else if (channel_data.getUserList().size() == 0){
+			this->_handler.getServer().setFdMessage(fd, ERR403); // no such channel
+			continue; 
+		}else if (!channel_data.findUser(name)){
+			this->_handler.getServer().setFdMessage(fd, ERR442); // not in channel
+			continue;
+		}else if (channel_data.getPrivileges(name) != 0){
+			this->_handler.getServer().setFdMessage(fd, ERR482); //privileges
+			continue;
+		} // init error check
+		for(size_t j = 0; j < targets.size(); ++j){
+			if (!channel_data.findUser(targets[j])){
+				this->_handler.getServer().setFdMessage(fd, ERR441); // target is not in channel
+				continue;
+			}
+			buf = "";
+			if (message == "")
+				buf.append("KICK : " + targets[j] + " from " + channels[i] + "\r\n");
+			else
+				buf.append("KICK : " + targets[j] + " from " + channels[i] + " using " + message + " as the reason.\r\n");
+			this->_handler.getServer().setFdMessage(fd, buf);
+			this->_handler.getServer().setFdMessage(this->_handler.getServer().g_db.getUserTable().getUser(targets[j]).fd, buf);	
+			target_info = this->_handler.getServer().g_db.getUserTable().getUser(targets[j]);
+			this->_handler.getServer().g_db.removeChannel(target_info, channels[i]);
+		}
+	}
 }
+
+std::vector<std::string> Kick::splitByComma(std::string args){
+	std::vector<std::string> ret;
+	if (args.find(',') == std::string::npos){
+		ret.push_back(args);
+		return (ret);
+	} else{
+		std::istringstream stream;
+		std::string targets;
+
+		stream.str(args);
+		while (std::getline(stream, targets, ','))
+			ret.push_back(targets);
+		return (ret);
+	}
+}
+
 
 void Part::run(int fd, std::vector<std::string> args) {
 	std::string name = this->_handler.getServer().getUserName(fd);
-	// std::vector<std::string>::iterator it = args.begin();
 	for (size_t index = 0; index < args.size(); ++index){
 		ChannelData& chn = this->_handler.getServer().g_db.getCorrectChannel(args[index]);
 		if (chn.getUserList().size() == 0) {

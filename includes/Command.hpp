@@ -2,6 +2,7 @@
 #define __COMMAND_HPP_
 
 #include "Handler.hpp"
+#include <sstream>
 
 class Command {
 public:
@@ -55,6 +56,8 @@ public:
 	Kick(Handler &h) : Command(h){};
 	~Kick() {};
 	void run(int, std::vector<std::string>);
+private :
+	std::vector<std::string> splitByComma(std::string);
 };
 
 class Part : public Command {
