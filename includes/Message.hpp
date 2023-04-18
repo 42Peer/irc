@@ -27,4 +27,6 @@
 #define MSGGREETING " :Welcome to IRC server\r\n"
 #define CODEGREET "001 "
 
+#define SERVNAME "irc.local "
+
 #endif /* __MESSAGE_HPP_ */
