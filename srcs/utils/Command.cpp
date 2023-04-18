@@ -43,9 +43,9 @@ void Join::run(int fd, std::vector<std::string> args) {
 	std::string buf("");
 
 	for (size_t i = 0; i < args.size(); ++i) {
-		if (args[i][0] != '#') {
+		if ((args[i][0] != '#' && args[i][0] != '&') || args[i].find(0x07) != std::string::npos) {
 			this->_handler.getServer().setFdMessage(fd, ERR476);
-			return;
+			continue;
 		} else {
 			struct s_user_info& curr_user = this->_handler.getServer().g_db.getUserTable().getUser(nick_name);
 			this->_handler.getServer().g_db.addChannelUser(curr_user, args[i]);
@@ -62,8 +62,9 @@ void Join::run(int fd, std::vector<std::string> args) {
 			}
 
 			buf = ":" + nick_name + MSGJOIN + args[i] + "\n"
-					+ ":" + SERVNAME	+ "353 " + nick_name + " = " + args[i] + " :@" + king + "\n"
+					+ ":" + SERVNAME + "353 " + nick_name + " = " + args[i] + " :@" + king + "\n"
 					+ ":" + SERVNAME + "366 " + nick_name + " " + args[i] + " :End of /NAMES list.\r\n";
+
 			int receiver(0);
 			for (size_t j = 0; j < user_list.size(); ++j) {
 				receiver = this->_handler.getServer().g_db.getUserTable().getUser(user_list[j]).fd;
@@ -229,7 +230,7 @@ void Kick::run(int fd, std::vector<std::string> args)
 		message = args.back();
 	for(size_t i = 0; i < channels.size(); ++i){
 		ChannelData channel_data = _handler.getServer().g_db.getCorrectChannel(channels[i]);
-		if (channels[i][0] != '#' || channels[i].find(0x07) != std::string::npos){
+		if ((channels[i][0] != '#' && channels[i][0] != '&') || channels[i].find(0x07) != std::string::npos){
 			this->_handler.getServer().setFdMessage(fd, ERR476); //channel mask
 			continue;
 		}else if (channel_data.getUserList().size() == 0){
