@@ -41,6 +41,7 @@ void Notice::run(int fd, std::vector<std::string> args) {
 void Join::run(int fd, std::vector<std::string> args) {
 	std::string nick_name(this->_handler.getServer().getUserName(fd));
 	std::string buf("");
+
 	for (size_t i = 0; i < args.size(); ++i) {
 		if (args[i][0] != '#') {
 			this->_handler.getServer().setFdMessage(fd, ERR476);
@@ -88,8 +89,11 @@ void Nick::run(int fd, std::vector<std::string> args) {
 	}
 	else if (this->_handler.getServer().g_db.getUserTable().isExist(new_nick)) {
 		buf.append("433 ");
-		buf.append(this->_handler.getServer().getUserName(fd));
-		buf.append(" ");
+		if (this->_handler.getServer().getUserName(fd) == "") {
+			buf.append(" * ");
+		} else {
+			buf.append(this->_handler.getServer().getUserName(fd) + " ");
+		}
 		buf.append(new_nick);
 		buf.append(" :Nickname is already in use\r\n");
 		this->_handler.getServer().setFdMessage(fd, buf);
@@ -133,7 +137,8 @@ void Nick::run(int fd, std::vector<std::string> args) {
 
 bool Nick::isValidName(const std::string& name) {
 	// https://modern.ircdocs.horse/#clients
-	if (name.find(' ') != std::string::npos ||
+	if (name.find('_') != std::string::npos || 
+		name.find(' ') != std::string::npos ||
 	name.find(',') != std::string::npos ||
 	name.find('*') != std::string::npos ||
 	name.find('?') != std::string::npos ||
