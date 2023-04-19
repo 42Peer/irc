@@ -70,3 +70,50 @@ std::string& Server::getFdMessage(int fd)
 {
 	return (_fd_message[fd]);
 }
+
+void Server::setFdFlags(int fd)
+{
+	/*
+		0 - check PASS
+		1 - check NICK
+		2 - check USER
+		3 - check AllInitStatus
+		3 - check PART
+	*/
+	std::vector<bool> temp;
+	temp.push_back(false);
+	temp.push_back(false);
+	temp.push_back(false);
+	temp.push_back(false);
+	temp.push_back(false);
+	_fd_flags[fd] = temp;
+}
+
+void Server::setFdFlagsOn(int fd, int i)
+{
+	_fd_flags[fd][i] = true;
+}
+
+bool Server::getFdFlagsInitStatus(int fd)
+{
+	if (_fd_flags[fd][0] && _fd_flags[fd][1] && _fd_flags[fd][2] && _fd_flags[fd][3])
+		return (true);
+	return (false);
+}
+
+bool Server::getFdFlagsStatus(int fd, int i)
+{
+	return (_fd_flags[fd][i]);
+}
+
+bool Server::checkGreetingMessage(int fd)
+{
+	if (_fd_flags[fd][0] && _fd_flags[fd][1] && _fd_flags[fd][2] && !_fd_flags[fd][3])
+		return (true);
+	return (false);
+}
+
+void	Server::removeFdFlags(int fd)
+{
+	_fd_flags.erase(fd);
+}

@@ -121,11 +121,11 @@ void Nick::run(int fd, std::vector<std::string> args) {
 	} else {
 		struct s_user_info new_user_info;
 		new_user_info.nick = new_nick;
-		if (this->_handler.getFdflags().find(fd) != this->_handler.getFdflags().end() && \
-			this->_handler.getFdflags()[fd] == 1) {
+		if (!this->_handler.getServer().getFdFlagsStatus(fd, 1)) {
 			new_user_info.fd = fd;
-			this->_handler.setFdFlags(fd, 2);
+			this->_handler.getServer().setFdFlagsOn(fd, 1);
 			this->_handler.getServer().g_db.getUserTable().addUser(new_user_info);
+			// if (this->_handler.getServer().getFdFlagsInitStatus(fd))
 		}
 		else {
 			std::string old_name = this->_handler.getServer().getUserName(fd);
@@ -148,19 +148,22 @@ void Nick::run(int fd, std::vector<std::string> args) {
 		}
 	}
 	this->_handler.getServer().setMapData(fd, new_nick);
+	if (this->_handler.getServer().checkGreetingMessage(fd)){
+		this->_handler.getServer().setFdMessage(fd, CODEGREET + new_nick +  MSGGREETING);
+		this->_handler.getServer().setFdFlagsOn(fd, 3);
+	}
 }
 
 bool Nick::isValidName(const std::string& name) {
 	// https://modern.ircdocs.horse/#clients
-	if (name.find('_') != std::string::npos || 
-		name.find(' ') != std::string::npos ||
+	if (name.find(' ') != std::string::npos ||
 	name.find(',') != std::string::npos ||
 	name.find('*') != std::string::npos ||
 	name.find('?') != std::string::npos ||
 	name.find('!') != std::string::npos ||
 	name.find('@') != std::string::npos ||
 	name.find('.') != std::string::npos ||
-	name[0] == '$' || name[0] == ':' || name[0] == '#' || name[0] == '&')
+	name[0] == '$' || name[0] == ':' || name[0] == '#' || name[0] == '&' || name[0] == '_')
 		return false;
 	return true;
 }
@@ -192,9 +195,8 @@ void Quit::run(int fd, std::vector<std::string> args) {
 //	this->_handler.getServer().setFdMessage(fd, buf);
 	this->_handler.getServer().g_db.removeUser(usr_name_info);
 	this->_handler.getServer().removeMapData(fd);
-	close(fd);
+	this->_handler.getServer().setFdFlagsOn(fd, 4);
 }
-
 
 std::vector<bool> Privmsg::checkduplicatedArgs(std::vector<std::string>& args) {
 	std::map<std::string, int> check;
@@ -403,8 +405,11 @@ void User::run(int fd, std::vector<std::string> args) {
 			this->_handler.getServer().g_db.getUserTable().getUser(name);
 	info.name = args[0];
 	info.real = args[3];
-	this->_handler.getFdflags().erase(fd);
-	this->_handler.getServer().setFdMessage(fd, RPL001 + name + MSG001);
+	this->_handler.getServer().setFdFlagsOn(fd, 2);
+	if (this->_handler.getServer().checkGreetingMessage(fd)){
+		this->_handler.getServer().setFdMessage(fd, RPL001 + name + MSG001);
+		this->_handler.getServer().setFdFlagsOn(fd, 3);
+	}
 }
 
 void Pass::run(int fd, std::vector<std::string> args) {
@@ -418,7 +423,7 @@ void Pass::run(int fd, std::vector<std::string> args) {
 	}
 	else{
 		if (this->_handler.getServer().getServerPassword() == args[0])
-			this->_handler.setFdFlags(fd, 1);
+			this->_handler.getServer().setFdFlagsOn(fd, 0);
 	}
 }
 

@@ -34,6 +34,7 @@ public:
 	Nick(Handler &h) : Command(h){};
 	~Nick() {};
 	void run(int, std::vector<std::string>);
+private:
 	bool isValidName(const std::string&);
 };
 
