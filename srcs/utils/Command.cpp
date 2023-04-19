@@ -176,9 +176,8 @@ void Nick::run(int fd, std::vector<std::string> args) {
 
 		this->_handler.getServer().g_db.updateUser(old_user_info, new_user_info);
 
-		buf.append(":");
-		buf.append(SERVNAME);
-		buf.append(this->_handler.getServer().getUserName(fd) + " NICK " + new_nick + "\r\n");
+		buf.append(": ");
+		buf.append(current_nick + " NICK " + new_nick + "\r\n");
 		this->_handler.getServer().setFdMessage(fd, buf);
 	}
 
