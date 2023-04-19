@@ -21,6 +21,7 @@ class Server {
 
 		void	setFdMessage(int, std::string);
 		std::string& getFdMessage(int);
+		void	removeFdMessage(int);
 
 		void	setFdFlags(int);
 		void	setFdFlagsOn(int, int);

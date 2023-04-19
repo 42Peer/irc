@@ -12,26 +12,16 @@ bool existInVector(std::vector<std::string> &vec, std::string value) {
 	return (false);
 }
 
-// std::vector<std::string> getChannelUser(Db &db, std::string name) {
-// 	struct s_user_info user_data;
-// 	user_data = db.getUserTable().getUser(name);
-// 	std::string channel_name = db.getUserTable().getChannelList(user_data);
-// 	return db.getCorrectChannel(channel_name).getUserList();
-// }
-
 void Notice::run(int fd, std::vector<std::string> args) {
-	// std::vector<std::string>::iterator it = args.begin();
 	std::string buf("");
 	std::string my_name = this->_handler.getServer().getUserName(fd);
 	if (args.front()[0] == '#') {
-//		:irc.local 404 jujeon nickname :No such nick
 		buf.append(":");
 		buf.append(SERVNAME);
 		buf.append(ERR404 + my_name + " " + args[0] + MSG404);
 		this->_handler.getServer().setFdMessage(fd, buf);
 	}
 	else if (this->_handler.getServer().g_db.getUserTable().isExist(args.front()) == false) {
-//		:irc.local 401 jujeon nickname :No such nick
 		buf.append(":");
 		buf.append(SERVNAME);
 		buf.append(ERR401 + my_name + " " + args[0] + MSG401);
@@ -57,7 +47,6 @@ void Join::run(int fd, std::vector<std::string> args) {
 			this->_handler.getServer().setFdMessage(fd, buf);
 			continue;
 		}
-		// 같은 채널에 조인하려고 했을때
 		if (this->_handler.getServer().g_db.getUserTable().getUser(nick_name).channel_list.size() > 0
 				&& this->_handler.getServer().g_db.getUserTable().getUser(nick_name).channel_list.back() == args[i]) {
 			continue;
@@ -67,7 +56,6 @@ void Join::run(int fd, std::vector<std::string> args) {
 			this->_handler.getServer().g_db.addChannelUser(curr_user, args[i]);
 			ChannelData chn = this->_handler.getServer().g_db.getCorrectChannel(args[i]);
 
-			// find the king in the channel
 			std::vector<std::string> user_list = chn.getUserList();
 			std::string king("");
 			for (size_t h = 0; h < user_list.size(); ++h) {
@@ -132,7 +120,6 @@ void Nick::run(int fd, std::vector<std::string> args) {
 		current_nick = "*";
 
 	if (!isValidName(new_nick)) {
-    // :irc.local 432 jujeon *juje :Erroneous Nickname
 		buf.append(":");
 		buf.append(SERVNAME);
 		buf.append(ERR432);
@@ -141,7 +128,6 @@ void Nick::run(int fd, std::vector<std::string> args) {
 		return;
 	}
 	if (this->_handler.getServer().g_db.getUserTable().isExist(new_nick)) {
-    // :irc.local 433 jujeon root :Nickname is already in use.
 		buf.append(":");
 		buf.append(SERVNAME);
 		buf.append(ERR433);
@@ -151,10 +137,8 @@ void Nick::run(int fd, std::vector<std::string> args) {
 	} 
 
 	s_user_info old_user_info = this->_handler.getServer().g_db.getUserTable().getUser(current_nick);
-	// Pass 통과 했으면
 	if (this->_handler.getServer().getFdFlagsStatus(fd, 0))
 	{
-		// 가입 전이면 새 client 구조체 할당
 		if (!this->_handler.getServer().getFdFlagsStatus(fd, 1))
 		{
 			struct s_user_info new_client;
@@ -176,7 +160,7 @@ void Nick::run(int fd, std::vector<std::string> args) {
 
 		this->_handler.getServer().g_db.updateUser(old_user_info, new_user_info);
 
-		buf.append(": ");
+		buf.append(":");
 		buf.append(current_nick + " NICK " + new_nick + "\r\n");
 		this->_handler.getServer().setFdMessage(fd, buf);
 	}
@@ -247,7 +231,6 @@ std::vector<bool> Privmsg::checkduplicatedArgs(std::vector<std::string>& args) {
 	std::map<std::string, int> check;
 	std::vector<bool> ret_arg;
 	ret_arg.resize(args.size() - 1);
-	// int cnt = 0;
 	for (size_t i = 0; i < args.size() - 1; ++i) {
 		int tmp = check[args[i]];
 		if (tmp != 0) {
@@ -273,7 +256,6 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
 			if (args[i][0] == '#' || args[i][0] == '&') {
 				ChannelData chn = this->_handler.getServer().g_db.getCorrectChannel(args[i]);
 				if (!chn.findUser(this->_handler.getServer().getUserName(fd))){
-//					:irc.local 404 jujeon #123 :You cannot send external messages to this channel whilst the +n (noextmsg) mode is set.
 					buf = ":";
 					buf += SERVNAME;
 					buf += ERR442 + my_name + " " + args[i] + MSG442;
@@ -295,7 +277,6 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
 				}
 				continue;
 			}
-//			:irc.local 401 jujeon j :No such nick
 			buf = ":";
 			buf += SERVNAME;
 			buf += ERR401 + my_name + " " + args[i] + MSG401;
@@ -331,34 +312,33 @@ void Kick::run(int fd, std::vector<std::string> args)
 			buf = ":";
 			buf += SERVNAME;
 			buf += ERR476 + name + " " + args[i] + MSG476;
-			this->_handler.getServer().setFdMessage(fd, buf); //channel mask
+			this->_handler.getServer().setFdMessage(fd, buf);
 			continue;
 		}else if (channel_data.getUserList().size() == 0){
 			buf = ":";
 			buf += SERVNAME;
 			buf += ERR403 + name + " " + args[i] + MSG403;
-			this->_handler.getServer().setFdMessage(fd, buf); // no such channel
+			this->_handler.getServer().setFdMessage(fd, buf);
 			continue; 
 		}else if (!channel_data.findUser(name)){
 			buf = ":";
 			buf += SERVNAME;
 			buf += ERR442 + name + " " + args[i] + MSG442;
-			this->_handler.getServer().setFdMessage(fd, buf); // not in channel
+			this->_handler.getServer().setFdMessage(fd, buf);
 			continue;
 		}else if (channel_data.getPrivileges(name) != 0){
-//			:irc.local 482 root #123 :You must be a channel operator
 			buf = ":";
 			buf += SERVNAME;
 			buf += ERR482 + name + " " + args[i] + MSG482;
-			this->_handler.getServer().setFdMessage(fd, buf); //privileges
+			this->_handler.getServer().setFdMessage(fd, buf);
 			continue;
-		} // init error check
+		}
 		for(size_t j = 0; j < targets.size(); ++j){
 			if (!channel_data.findUser(targets[j])){
 				buf = ":";
 				buf += SERVNAME;
 				buf += ERR441 + name + " " + args[i] + MSG441;
-				this->_handler.getServer().setFdMessage(fd, buf); // target is not in channel
+				this->_handler.getServer().setFdMessage(fd, buf);
 				continue;
 			}
 			buf = "";
@@ -397,7 +377,6 @@ void Part::run(int fd, std::vector<std::string> args) {
 	for (size_t index = 0; index < args.size(); ++index){
 		ChannelData& chn = this->_handler.getServer().g_db.getCorrectChannel(args[index]);
 		if (chn.getUserList().size() == 0) {
-//			:irc.local 403 jujeon #hi :No such channel
 			buf = ":";
 			buf += SERVNAME;
 			buf += ERR403 + name + " " + args[index] + MSG403;
@@ -411,21 +390,18 @@ void Part::run(int fd, std::vector<std::string> args) {
 					break ;
 			}
 			if (i == channel_user.size()) {
-//				:irc.local 442 jujeon #11 :You're not on that channel
 				buf = ":";
 				buf += SERVNAME;
 				buf += ERR442 + name + " " + args[index] + MSG442;
 				_handler.getServer().setFdMessage(fd, buf);
 			}
 			else {
-//				:root!root@127.0.0.1 PART :#123
 				chn.removeData(name);
 				this->_handler.getServer().g_db.getUserTable().removeChannel(user_info, args[index]);
 				buf = "";
 				buf += ":" + name + " PART " + ":" + args[index] + "\r\n";
 				_handler.getServer().setFdMessage(fd, buf);
 
-				// 채널 안의 멤버들에게도 메세지 보여주기
 				std::vector<std::string> user_list = chn.getUserList();
 				int receiver(0);
 				for (size_t j = 0; j < user_list.size(); ++j) {
@@ -440,7 +416,6 @@ void Part::run(int fd, std::vector<std::string> args) {
 void User::run(int fd, std::vector<std::string> args) {
 	std::string name = this->_handler.getServer().getUserName(fd);
 	if (this->_handler.getServer().getFdFlagsStatus(fd, 2)){
-//		:irc.local 462 jujeon :You may not reregister
 		std::string buf = ":";
 		buf += SERVNAME;
 		buf += ERR462 + name + MSG462;
@@ -460,7 +435,6 @@ void User::run(int fd, std::vector<std::string> args) {
 
 void Pass::run(int fd, std::vector<std::string> args) {
 	if (this->_handler.getServer().getFdFlagsStatus(fd, 0)){
-//		:irc.local 462 jujeon :You may not reregister
 		std::string name = this->_handler.getServer().getUserName(fd);
 		std::string buf = ":";
 		buf += SERVNAME;
@@ -477,7 +451,6 @@ void Ping::run(int fd, std::vector<std::string> args) {
 	std::string buf;
 	std::string name = this->_handler.getServer().getUserName(fd);
 	if (args.size() < 1) {
-		//not enough parameters
 		buf = ":";
 		buf += SERVNAME;
 		buf += ERR461 + name + " PING " + MSG461;
@@ -509,10 +482,16 @@ void Bot::run(int fd, std::vector<std::string> args){
 		this->_handler.getServer().setFdMessage(fd, buf);
 	}else if (args.size() == 2 && args[0] == "list"){
 		if ((args[1][0] != '#' && args[1][0] != '&') || args[1].find(0x07) != std::string::npos) {
-			this->_handler.getServer().setFdMessage(fd, ERR476);
+			buf = ":";
+			buf += SERVNAME;
+			buf += ERR476 + this->_handler.getServer().getUserName(fd) + " " + args[1] + MSG476;
+			this->_handler.getServer().setFdMessage(fd, buf);
 			return;
 		} else if (this->_handler.getServer().g_db.getCorrectChannel(args[1]).getUserList().size() == 0){
-			this->_handler.getServer().setFdMessage(fd, ERR403);
+			buf = ":";
+			buf += SERVNAME;
+			buf += ERR403 + this->_handler.getServer().getUserName(fd) + " " + args[1] + MSG403;
+			_handler.getServer().setFdMessage(fd, buf);
 			return;
 		}
 		buf.append("Active User List in [" + args[1] + "]\n");
