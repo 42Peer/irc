@@ -19,7 +19,7 @@ private:
 
 	void figureCommand(int, std::pair<int, std::vector<std::string> >&);
 	bool servReceive(int);
-	void makeProtocol(int);
+	void signalQuit(int);
 };
 
 

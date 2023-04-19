@@ -28,6 +28,7 @@ class Server {
 		bool	getFdFlagsStatus(int, int);
 		bool	checkGreetingMessage(int);
 		void	removeFdFlags(int);
+		void	removeFdMessage(int);
 		Db	g_db;
 
 	private:

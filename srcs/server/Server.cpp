@@ -117,3 +117,8 @@ void	Server::removeFdFlags(int fd)
 {
 	_fd_flags.erase(fd);
 }
+
+void	Server::removeFdMessage(int fd)
+{
+	_fd_message.erase(fd);
+}

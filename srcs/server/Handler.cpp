@@ -33,6 +33,34 @@ Handler::Handler(Server &server_) : _server(server_) {
 Handler::~Handler() {}
 
 
+void Handler::signalQuit(int fd){
+	std::string usr_name = this->getServer().getUserName(fd);
+	struct s_user_info usr_name_info =
+			this->getServer().g_db.getUserTable().getUser(usr_name);
+
+//	QUIT jujeon QUIT :Quit: hi
+//	채널 안의 멤버들에게도 메세지 보여주기
+//	일단보류
+//	ChannelData& chn = this->_handler.getServer().g_db.getCorrectChannel(args);
+//	std::vector<std::string> user_list = chn.getUserList();
+//	int receiver(0);
+//	for (size_t j = 0; j < user_list.size(); ++j) {
+//		receiver = this->_handler.getServer().g_db.getUserTable().getUser(user_list[j]).fd;
+//		this->_handler.getServer().setFdMessage(receiver, buf);
+//	}
+	// std::string buf("");
+	// buf = "ERROR :Closing link: [QUIT: Client exited]\r\n";
+	// this->getServer().setFdMessage(fd, buf);
+	this->getServer().g_db.removeUser(usr_name_info);
+	this->getServer().removeMapData(fd);
+	this->getServer().removeFdFlags(fd);
+	this->getServer().removeFdMessage(fd);
+	close(fd);
+	// std::string tmp = this->getServer().getFdMessage(fd);
+	// std::cout << "fd_message: " << tmp << std::endl;
+	// std::cout << "end socket: " << fd << std::endl;
+}
+
 void Handler::run(void) {
 	std::map<int, std::string> tmp_data;
 
@@ -45,8 +73,9 @@ void Handler::run(void) {
 
 		for (int i = 0; i < evt; ++i) {
 			if (_monitor[i].flags & EV_EOF) {
-				this->getServer().removeFdFlags(_monitor[i].ident);
-				close(_monitor[i].ident);
+				// this->getServer().removeFdFlags(_monitor[i].ident);
+				// close(_monitor[i].ident);
+				this->signalQuit(_monitor[i].ident);
 			}
 			else if (_monitor[i].flags & EV_ERROR) {
 				// std::cerr << "ENABLE\n";
@@ -90,6 +119,7 @@ void Handler::run(void) {
 				this->getServer().getFdMessage(_monitor[i].ident).clear();
 				if (this->getServer().getFdFlagsStatus(_monitor[i].ident, 4) == true){
 					this->getServer().removeFdFlags(_monitor[i].ident);
+					this->getServer().removeFdMessage(_monitor[i].ident);
 					close(_monitor[i].ident);
 				}
 			}
@@ -111,18 +141,6 @@ bool Handler::servReceive(int fd) {
 	_msg_map[fd].first += std::string(buf);
 
 	return (true);
-}
-
-void Handler::makeProtocol(int fd) {
-	size_t delimiter;
-	while ((delimiter = std::min(_msg_map[fd].first.find('\r'), _msg_map[fd].first.find('\n'))) != std::string::npos) {
-		std::string data = _msg_map[fd].first.substr(0, delimiter);
-		_msg_map[fd].first.erase(0, delimiter + 1);
-		_msg_map[fd].second = data;
-		if (data == "")
-			break ;
-		data.clear();
-	}
 }
 
 void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &data) {
