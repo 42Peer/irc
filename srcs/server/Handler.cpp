@@ -128,6 +128,8 @@ void Handler::makeProtocol(int fd) {
 void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &data) {
 	Command *cmd = NULL;
 	int ctype = data.first;
+	std::string buf("");
+	std::string name = getServer().getUserName(fd);
 
 	if(this->getServer().getFdFlagsInitStatus(fd)) {
 		if (ctype == JOIN)
@@ -166,14 +168,27 @@ void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &d
 		delete cmd;
 	}
 	else{
-		if (ctype == WRONGARG)
-			this->getServer().setFdMessage(fd, ERR461);
-		else if (ctype == INVAILDCMD)
-			this->getServer().setFdMessage(fd, ERR421 + data.second[0] + "\n");
-		else if (ctype == MODE || ctype == WHOIS || ctype == CAP) 
+		if (ctype == WRONGARG) {
+//			:irc.local 461 jujeon :Not enough parameters
+			buf = ":";
+			buf += SERVNAME;
+			buf += ERR461 + name + MSG461;
+			this->getServer().setFdMessage(fd, buf);
+		}
+		else if (ctype == INVAILDCMD) {
+			buf = ":";
+			buf += SERVNAME;
+			buf += ERR421 + name + " " + data.second[0] + MSG421;
+			this->getServer().setFdMessage(fd, buf);
+		}
+		else if (ctype == MODE || ctype == WHOIS || ctype == CAP)
 			return;
-		else if (this->getServer().getFdFlagsInitStatus(fd))
-			this->getServer().setFdMessage(fd, ERR451);
+		else if (this->getServer().getFdFlagsInitStatus(fd)) {
+			buf = ":";
+			buf += SERVNAME;
+			buf += ERR451 + name + MSG451;
+			this->getServer().setFdMessage(fd, buf);
+		}
 	}
 }
 
