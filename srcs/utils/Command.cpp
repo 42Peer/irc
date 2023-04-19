@@ -154,19 +154,32 @@ bool Nick::isValidName(const std::string& name) {
 
 void Quit::run(int fd, std::vector<std::string> args) {
 	std::string usr_name = this->_handler.getServer().getUserName(fd);
-	struct s_user_info usr_name_info =
-			this->_handler.getServer().g_db.getUserTable().getUser(usr_name);
-
-//	QUIT jujeon QUIT :Quit: hi
-//	채널 안의 멤버들에게도 메세지 보여주기
-//	일단보류
-//	ChannelData& chn = this->_handler.getServer().g_db.getCorrectChannel(args);
-//	std::vector<std::string> user_list = chn.getUserList();
-//	int receiver(0);
-//	for (size_t j = 0; j < user_list.size(); ++j) {
-//		receiver = this->_handler.getServer().g_db.getUserTable().getUser(user_list[j]).fd;
-//		this->_handler.getServer().setFdMessage(receiver, buf);
-//	}
+	struct s_user_info usr_name_info = this->_handler.getServer().g_db.getUserTable().getUser(usr_name);
+	std::vector<std::string> chn_list = usr_name_info.channel_list;
+	for (size_t index = 0; index < chn_list.size(); ++index){
+		ChannelData& chn = this->_handler.getServer().g_db.getCorrectChannel(chn_list[index]);
+		if (chn.getUserList().size() == 0) {
+				_handler.getServer().setFdMessage(fd, ERR403);
+		} else {
+			struct s_user_info user_info = this->_handler.getServer().g_db.getUserTable().getUser(usr_name);
+			std::vector<std::string> channel_user = chn.getUserList();
+			
+			chn.removeData(usr_name);
+			this->_handler.getServer().g_db.getUserTable().removeChannel(user_info, chn_list[index]);
+			std::string buf("");
+			if (args.size() == 0)
+				buf += ":" + usr_name + " QUIT :Client exited\r\n";
+			else
+				buf += ":" + usr_name + " QUIT :Quit: " + args[0] + "\r\n";
+	
+			std::vector<std::string> user_list = chn.getUserList();
+			int receiver = 0;
+			for (size_t j = 0; j < user_list.size(); ++j) {
+				receiver = this->_handler.getServer().g_db.getUserTable().getUser(user_list[j]).fd;
+				this->_handler.getServer().setFdMessage(receiver, buf);
+			}
+		}
+	}
 	std::string buf("");
 	if (!args.empty())
 		buf = "ERROR :Closing link: [QUIT:" + args[0] + "]\r\n";
@@ -372,4 +385,41 @@ void Ping::run(int fd, std::vector<std::string> args) {
 	buf.append(args[0]);
 	buf.append("\r\n");
 	this->_handler.getServer().setFdMessage(fd, buf);
+}
+
+void Bot::run(int fd, std::vector<std::string> args){
+	std::string buf("");
+	if (args.size() == 1 && args[0] == "help"){
+		buf.append("I am Channel helper\n");
+		buf.append("type \"@BOT list\" to get channel list\n");
+		buf.append("type \"@BOT list <channel name>\" to get User list in Channel\r\n");
+		this->_handler.getServer().setFdMessage(fd, buf);
+		return ;
+	}else if (args.size() == 1 && args[0] == "list"){
+		std::vector<std::string> list = this->_handler.getServer().g_db.getChannelList();
+		buf.append("===Current Channel List===\n");
+		for (size_t i = 0; i < list.size(); ++i){
+			if (this->_handler.getServer().g_db.getCorrectChannel(list[i]).getUserList().size() != 0)
+				buf.append("-" + list[i] + "\n");
+		}
+		buf.append("===end of list===\r\n");
+		this->_handler.getServer().setFdMessage(fd, buf);
+	}else if (args.size() == 2 && args[0] == "list"){
+		if ((args[1][0] != '#' && args[1][0] != '&') || args[1].find(0x07) != std::string::npos) {
+			this->_handler.getServer().setFdMessage(fd, ERR476);
+			return;
+		} else if (this->_handler.getServer().g_db.getCorrectChannel(args[1]).getUserList().size() == 0){
+			this->_handler.getServer().setFdMessage(fd, ERR403);
+			return;
+		}
+		buf.append("Active User List in [" + args[1] + "]\n");
+		std::vector<std::string> temp = this->_handler.getServer().g_db.getCorrectChannel(args[1]).getUserList();
+		for(size_t i = 0; i < temp.size(); ++i)
+			buf.append("-" + temp[i] + "\n");
+		buf.append("===end of list===\r\n");
+		this->_handler.getServer().setFdMessage(fd, buf);
+	}else {
+		buf.append("Error :type @BOT help\r\n");
+		this->_handler.getServer().setFdMessage(fd, buf);
+	}
 }

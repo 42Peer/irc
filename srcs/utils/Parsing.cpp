@@ -83,6 +83,8 @@ int checkCommand(std::string cmd) {
 		return (WHOIS);
 	else if (cmd == "PING")
 		return (PING);
+	else if (cmd == "@BOT")
+		return (BOT);
 	else
 		return (INVAILDCMD);
 }

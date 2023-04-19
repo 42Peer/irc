@@ -70,8 +70,10 @@ public:
 
     bool updateUser(struct s_user_info &org, struct s_user_info &usr);
 
-    void addChannelUser(struct s_user_info &usr,
-                        const std::string &channel_name);
+    void addChannelUser(struct s_user_info &usr, const std::string &channel_name);
+
+    std::vector<std::string> getChannelList(void);
+
 
 private:
     std::map<std::string, ChannelData> channel_tables;

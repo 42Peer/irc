@@ -150,6 +150,8 @@ void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &d
 			cmd = new Pass(*this);
 		else if (ctype == PING)
 			cmd = new Ping(*this);
+		else if (ctype == BOT)
+			cmd = new Bot(*this);
 	}else {
 		if (ctype == PASS) {
 			cmd = new Pass(*this);

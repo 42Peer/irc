@@ -91,4 +91,13 @@ public:
 	void run(int, std::vector<std::string>);
 };
 
+class Bot : public Command{
+public:
+	Bot(Handler &h) : Command(h){};
+	~Bot(){};
+	void run(int, std::vector<std::string>);
+private:
+
+};
+
 #endif /* __COMMAND_HPP_ */
