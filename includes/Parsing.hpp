@@ -22,6 +22,7 @@ enum {
 	MODE,
 	WHOIS,
 	PING,
+	WHO,
 	BOT,
 };
 
