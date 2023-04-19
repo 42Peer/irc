@@ -96,57 +96,57 @@ void Nick::run(int fd, std::vector<std::string> args) {
 	std::string buf("");
 	std::string my_name = this->_handler.getServer().getUserName(fd);
 	std::string new_nick = args[0];
+	std::string current_nick(this->_handler.getServer().getUserName(fd));
+	if (current_nick == "")
+	{
+			std::cout << "new client tmp nick is *" << "\n";
+		current_nick = "*";
+	}
+
 	if (!isValidName(new_nick)) {
-//		:irc.local 432 jujeon *juje :Erroneous Nickname
-		buf += ":";
-		buf += SERVNAME;
-		buf.append(ERR432 + my_name + " " + new_nick + MSG432);
+    // :irc.local 432 jujeon *juje :Erroneous Nickname
+		buf.append(":" + SERVNAME + " 432 " + current_nick + " " + new_nick + MSG432);
 		this->_handler.getServer().setFdMessage(fd, buf);
 		return;
 	}
-	else if (this->_handler.getServer().g_db.getUserTable().isExist(new_nick)) {
-//		:irc.local 433 jujeon root :Nickname is already in use.
-		buf += ":";
-		buf += SERVNAME;
-		buf += ERR433;
-		if (my_name == "") {
-			buf.append(" * ");
-		} else {
-			buf.append(my_name + " ");
-		}
-		buf.append(new_nick);
-		buf.append(MSG433);
+	if (this->_handler.getServer().g_db.getUserTable().isExist(new_nick)) {
+    // :irc.local 433 jujeon root :Nickname is already in use.
+		buf.append(":" + SERVNAME + " 433 " + current_nick + " " + new_nick + MSG433);
 		this->_handler.getServer().setFdMessage(fd, buf);
 		return;
-	} else {
+	} 
+
+	s_user_info old_user_info = this->_handler.getServer().g_db.getUserTable().getUser(current_nick);
+	// Pass 통과 했으면
+	if (this->_handler.getServer().getFdFlagsStatus(fd, 0))
+	{
+		// 가입 전이면 새 client 구조체 할당
+		if (!this->_handler.getServer().getFdFlagsStatus(fd, 1))
+		{
+			std::cout << "new client info created" << "\n";
+			struct s_user_info new_client;
+			new_client.fd = fd;
+			new_client.nick = new_nick;
+			new_client.name = "*";
+			new_client.real = "*";
+			this->_handler.getServer().g_db.getUserTable().addUser(new_client);
+			old_user_info = this->_handler.getServer().g_db.getUserTable().getUser(new_nick);
+			this->_handler.getServer().setFdFlagsOn(fd, 1);
+		}
+
 		struct s_user_info new_user_info;
 		new_user_info.nick = new_nick;
-		if (!this->_handler.getServer().getFdFlagsStatus(fd, 1)) {
-			new_user_info.fd = fd;
-			this->_handler.getServer().setFdFlagsOn(fd, 1);
-			this->_handler.getServer().g_db.getUserTable().addUser(new_user_info);
-			// if (this->_handler.getServer().getFdFlagsInitStatus(fd))
-		}
-		else {
-			std::string old_name = this->_handler.getServer().getUserName(fd);
-			s_user_info old_user_info = this->_handler.getServer().g_db.getUserTable().getUser(old_name);
-			new_user_info.name = old_user_info.name;
-			new_user_info.fd = old_user_info.fd;
+		new_user_info.name = old_user_info.name;
+		new_user_info.real = old_user_info.real;
+		new_user_info.fd = old_user_info.fd;
+		new_user_info.channel_list = old_user_info.channel_list;
 
-			this->_handler.getServer().g_db.updateUser(old_user_info, new_user_info);
+		this->_handler.getServer().g_db.updateUser(old_user_info, new_user_info);
 
-			buf.append(":" + this->_handler.getServer().getUserName(fd) + " NICK :" + new_nick + "\r\n");
-//			this->_handler.getServer().setFdMessage(fd, buf);
-
-//			나 포함 동일 채널의 사람들에게 닉네임 변경 사실 알려주기
-			std::string current_channel = this->_handler.getServer().g_db.getUserTable().getChannelList(new_user_info);
-			std::vector<std::string> users_in_current_channel = this->_handler.getServer().g_db.getCorrectChannel(current_channel).getUserList();
-			int receiver(0);
-			for (size_t i = 0; i < users_in_current_channel.size(); ++i)
-			 	receiver = this->_handler.getServer().g_db.getUserTable().getUser(users_in_current_channel[i]).fd;
-			 	this->_handler.getServer().setFdMessage(receiver, buf);
-		}
+		buf.append(":" + this->_handler.getServer().getUserName(fd) + " NICK " + new_nick + "\r\n");
+		this->_handler.getServer().setFdMessage(fd, buf);
 	}
+
 	this->_handler.getServer().setMapData(fd, new_nick);
 	if (this->_handler.getServer().checkGreetingMessage(fd)){
 		this->_handler.getServer().setFdMessage(fd, RPL001 + new_nick +  MSG001);
