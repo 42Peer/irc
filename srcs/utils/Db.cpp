@@ -57,7 +57,10 @@ bool UserData::addUser(struct s_user_info &user) {
 		return (false);
 	struct s_user_info info;
 
-	info.name = user.name;
+	info.usr_name = user.usr_name;
+	info.real_name = user.real_name;
+	info.host_name = user.host_name;
+	info.server_name = user.server_name;
 	info.nick = user.nick;
 	info.fd = user.fd;
 	info.channel_list = user.channel_list;

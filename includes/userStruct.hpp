@@ -5,11 +5,14 @@
 #include <vector>
 
 struct s_user_info {
-  int fd;
-  std::string nick;
-  std::string name;
-  std::string real;
-  std::vector<std::string> channel_list;
+	int fd;
+	std::string nick;
+	std::string usr_name;
+	std::string real_name;
+	std::string server_name;
+	std::string host_name;
+
+	std::vector<std::string> channel_list;
 };
 
 #endif /* __USERSTRUCT_HPP_ */

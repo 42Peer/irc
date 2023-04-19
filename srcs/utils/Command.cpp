@@ -144,8 +144,8 @@ void Nick::run(int fd, std::vector<std::string> args) {
 			struct s_user_info new_client;
 			new_client.fd = fd;
 			new_client.nick = new_nick;
-			new_client.name = "*";
-			new_client.real = "*";
+			new_client.real_name = "*";
+			new_client.usr_name = "*";
 			this->_handler.getServer().g_db.getUserTable().addUser(new_client);
 			old_user_info = this->_handler.getServer().g_db.getUserTable().getUser(new_nick);
 			this->_handler.getServer().setFdFlagsOn(fd, 1);
@@ -153,8 +153,10 @@ void Nick::run(int fd, std::vector<std::string> args) {
 
 		struct s_user_info new_user_info;
 		new_user_info.nick = new_nick;
-		new_user_info.name = old_user_info.name;
-		new_user_info.real = old_user_info.real;
+		new_user_info.usr_name = old_user_info.usr_name;
+		new_user_info.real_name = old_user_info.real_name;
+		new_user_info.host_name = old_user_info.host_name;
+		new_user_info.server_name = old_user_info.server_name;
 		new_user_info.fd = old_user_info.fd;
 		new_user_info.channel_list = old_user_info.channel_list;
 
@@ -399,7 +401,15 @@ void Part::run(int fd, std::vector<std::string> args) {
 				chn.removeData(name);
 				this->_handler.getServer().g_db.getUserTable().removeChannel(user_info, args[index]);
 				buf = "";
-				buf += ":" + name + " PART " + ":" + args[index] + "\r\n";
+				buf.append(":");
+				buf.append(name);
+				buf.append("!~");
+				buf.append(name);
+				buf.append("@");
+				buf.append(SERVNAME);
+				buf.append(" PART ");
+				buf.append(args[index]);
+				buf.append("\r\n");
 				_handler.getServer().setFdMessage(fd, buf);
 
 				std::vector<std::string> user_list = chn.getUserList();
@@ -424,8 +434,10 @@ void User::run(int fd, std::vector<std::string> args) {
 	}
 	struct s_user_info info =
 			this->_handler.getServer().g_db.getUserTable().getUser(name);
-	info.name = args[0];
-	info.real = args[3];
+	info.usr_name = args[0];
+	info.host_name = args[1];
+	info.server_name = args[2];
+	info.real_name = args[3];
 	this->_handler.getServer().setFdFlagsOn(fd, 2);
 	if (this->_handler.getServer().checkGreetingMessage(fd)){
 		this->_handler.getServer().setFdMessage(fd, RPL001 + name + MSG001);
@@ -434,7 +446,7 @@ void User::run(int fd, std::vector<std::string> args) {
 }
 
 void Pass::run(int fd, std::vector<std::string> args) {
-	if (this->_handler.getServer().getFdFlagsStatus(fd, 0)){
+	if (this->_handler.getServer().getFdFlagsInitStatus(fd)){
 		std::string name = this->_handler.getServer().getUserName(fd);
 		std::string buf = ":";
 		buf += SERVNAME;
@@ -444,6 +456,14 @@ void Pass::run(int fd, std::vector<std::string> args) {
 	else{
 		if (this->_handler.getServer().getServerPassword() == args[0])
 			this->_handler.getServer().setFdFlagsOn(fd, 0);
+		else if (this->_handler.getServer().getServerPassword() != args[0] && !this->_handler.getServer().getFdFlagsStatus(fd, 0))
+		{
+			std::string buf = ":";
+			buf += SERVNAME;
+			buf += ERR464;
+			buf += MSG464;
+			this->_handler.getServer().setFdMessage(fd, buf);
+		}
 	}
 }
 
