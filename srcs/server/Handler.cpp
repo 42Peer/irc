@@ -122,6 +122,8 @@ void Handler::makeProtocol(int fd) {
 }
 
 void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &data) {
+	std::string buf("");
+	std::string name(getServer().getUserName(fd));
 	if (_fd_flags.find(fd) != _fd_flags.end()) {
 		Command *cmd = NULL;
 		if (data.first == PASS) {
@@ -140,12 +142,24 @@ void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &d
 			;
 		else
 		{
-			if (data.first == INVAILDCMD)
-				this->getServer().setFdMessage(fd, ERR421 + data.second[0] + "\n");
-			else if (data.first == WRONGARG)
-				this->getServer().setFdMessage(fd, ERR461);
-			else
-				this->getServer().setFdMessage(fd, ERR451);
+			if (data.first == INVAILDCMD) {
+				buf = ":";
+				buf += SERVNAME;
+				buf += ERR421 + name + " " + data.second[0] + MSG421;
+				this->getServer().setFdMessage(fd, buf);
+			}
+			else if (data.first == WRONGARG) {
+				buf = ":";
+				buf += SERVNAME;
+				buf += ERR461 + name + " " + data.second[0]  + MSG461;
+				this->getServer().setFdMessage(fd, buf);
+			}
+			else {
+				buf = ":";
+				buf += SERVNAME;
+				buf += ERR451 + name + " " + data.second[0] + MSG451;
+				this->getServer().setFdMessage(fd, buf);
+			}
 		}
 	} else {
 		Command *cmd = NULL;
@@ -182,12 +196,21 @@ void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &d
 			break;
 		default:
 			{
-				if (data.first == WRONGARG)
-					this->getServer().setFdMessage(fd, ERR461);
+				if (data.first == WRONGARG){
+//					:irc.local 461 jujeon JOIN :Not enough parameters.
+					buf = ":";
+					buf += SERVNAME;
+					buf += ERR461 + name + " " + MSG461; // data.second[0] 이 커맨드여야한다. 지금은 비었다.
+					this->getServer().setFdMessage(fd, buf);
+				}
 				else if (data.first == CAP)
 					return ;
-				else
-					this->getServer().setFdMessage(fd, ERR421 + data.second[0] + "\n");
+				else { // WHOSI MODE?? 가 들어오는건가요?
+					buf = ":";
+					buf += SERVNAME;
+					buf += ERR421 + name + " " + data.second[0] + MSG421;
+					this->getServer().setFdMessage(fd, buf);
+				}
 				return;
 			}
 		}
