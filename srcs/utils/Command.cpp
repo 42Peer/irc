@@ -27,7 +27,7 @@ void Notice::run(int fd, std::vector<std::string> args) {
 //		:irc.local 404 jujeon nickname :No such nick
 		buf.append(": ");
 		buf.append(SERVNAME);
-		buf.append(ERR404 + my_name + " " + args[0] + MSG404 );
+		buf.append(ERR404 + my_name + " " + args[0] + MSG404);
 		this->_handler.getServer().setFdMessage(fd, buf);
 	}
 	else if (this->_handler.getServer().g_db.getUserTable().isExist(args.front()) == false) {
@@ -51,7 +51,10 @@ void Join::run(int fd, std::vector<std::string> args) {
 
 	for (size_t i = 0; i < args.size(); ++i) {
 		if ((args[i][0] != '#' && args[i][0] != '&') || args[i].find(0x07) != std::string::npos) {
-			this->_handler.getServer().setFdMessage(fd, ERR476);
+			buf += ":";
+			buf += SERVNAME;
+			buf += ERR476 + nick_name + args[i] + MSG476;
+			this->_handler.getServer().setFdMessage(fd, buf);
 			continue;
 		}
 		// 같은 채널에 조인하려고 했을때
@@ -91,21 +94,28 @@ void Join::run(int fd, std::vector<std::string> args) {
 
 void Nick::run(int fd, std::vector<std::string> args) {
 	std::string buf("");
+	std::string my_name = this->_handler.getServer().getUserName(fd);
 	std::string new_nick = args[0];
 	if (!isValidName(new_nick)) {
-		buf.append("432 " + this->_handler.getServer().getUserName(fd) + " " + new_nick + " :Erroneus nickname\r\n");
+//		:irc.local 432 jujeon *juje :Erroneous Nickname
+		buf += ":";
+		buf += SERVNAME;
+		buf.append(ERR432 + my_name + " " + new_nick + MSG432);
 		this->_handler.getServer().setFdMessage(fd, ERR432);
 		return;
 	}
 	else if (this->_handler.getServer().g_db.getUserTable().isExist(new_nick)) {
-		buf.append("433 ");
-		if (this->_handler.getServer().getUserName(fd) == "") {
+//		:irc.local 433 jujeon root :Nickname is already in use.
+		buf += ":";
+		buf += SERVNAME;
+		buf += ERR433;
+		if (my_name == "") {
 			buf.append(" * ");
 		} else {
-			buf.append(this->_handler.getServer().getUserName(fd) + " ");
+			buf.append(my_name + " ");
 		}
 		buf.append(new_nick);
-		buf.append(" :Nickname is already in use\r\n");
+		buf.append(MSG433);
 		this->_handler.getServer().setFdMessage(fd, buf);
 		return;
 	} else {
@@ -213,6 +223,8 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
 			if (args[i][0] == '#' || args[i][0] == '&') {
 				ChannelData chn = this->_handler.getServer().g_db.getCorrectChannel(args[i]);
 				if (!chn.findUser(this->_handler.getServer().getUserName(fd))){
+//					:jujeon!1@127.0.0.1 PRIVMSG root :you are not on the channel
+					buf +=
 					this->_handler.getServer().setFdMessage(fd, ERR442);
 					continue;
 				}
