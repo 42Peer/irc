@@ -43,12 +43,9 @@ void Handler::run(void) {
 			if (_monitor[i].flags & EV_EOF)
 				this->signalQuit(_monitor[i].ident);
 			else if (_monitor[i].flags & EV_ERROR) {
-				// std::cerr << "ENABLE\n";
 				if (_monitor[i].ident == _server.getServerSocket())
 					exit(1);
-				else
-					;
-				//   std::cerr << "Client error\n";
+				else ;
 			} else if (_monitor[i].filter == EVFILT_READ) {
 				if (_monitor[i].ident == _server.getServerSocket()) {
 					socklen_t sock_len = sizeof(sockaddr_in);
@@ -64,7 +61,7 @@ void Handler::run(void) {
 					this->getServer().setFdFlags(new_client);
 				}
 				else if (servReceive(_monitor[i].ident)) {
-					int idx;
+					int idx = 0;
 					while ((idx = findCrln(_msg_map[_monitor[i].ident].first)) != -1) {
 						std::string test =_msg_map[_monitor[i].ident].first.substr(0, idx);
 						std::pair<int, std::vector<std::string> > parsed_data = parseData(test);
@@ -76,7 +73,7 @@ void Handler::run(void) {
 				std::string fd_data = this->getServer().getFdMessage(_monitor[i].ident);
 				if (fd_data == "")
 					continue ;
-				send(_monitor[i].ident, fd_data.c_str(), fd_data.size(), 0);
+				send(_monitor[i].ident, fd_data.c_str(), fd_data.size(), 0);	
 				this->getServer().getFdMessage(_monitor[i].ident).clear();
 				if (this->getServer().getFdFlagsStatus(_monitor[i].ident, 4) == true){
 					this->getServer().removeFdFlags(_monitor[i].ident);
@@ -99,7 +96,6 @@ bool Handler::servReceive(int fd) {
 	buf[buf_len] = '\0';
 
 	_msg_map[fd].first += std::string(buf);
-
 	return (true);
 }
 
@@ -125,7 +121,6 @@ std::string usr_name = this->getServer().getUserName(fd);
 	}
 	this->getServer().g_db.removeUser(usr_name_info);
 	this->getServer().removeMapData(fd);
-	this->getServer().setFdFlagsOn(fd, 4);
 	this->getServer().removeFdFlags(fd);
 	this->getServer().removeFdMessage(fd);
 	close(fd);
