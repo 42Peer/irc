@@ -105,13 +105,19 @@ void Nick::run(int fd, std::vector<std::string> args) {
 
 	if (!isValidName(new_nick)) {
     // :irc.local 432 jujeon *juje :Erroneous Nickname
-		buf.append(":" + SERVNAME + " 432 " + current_nick + " " + new_nick + MSG432);
+		buf.append(":");
+		buf.append(SERVNAME);
+		buf.append(ERR432);
+		buf.append(current_nick + " " + new_nick + MSG432);
 		this->_handler.getServer().setFdMessage(fd, buf);
 		return;
 	}
 	if (this->_handler.getServer().g_db.getUserTable().isExist(new_nick)) {
     // :irc.local 433 jujeon root :Nickname is already in use.
-		buf.append(":" + SERVNAME + " 433 " + current_nick + " " + new_nick + MSG433);
+		buf.append(":");
+		buf.append(SERVNAME);
+		buf.append(ERR433);
+		buf.append(current_nick + " " + new_nick + MSG433);
 		this->_handler.getServer().setFdMessage(fd, buf);
 		return;
 	} 
