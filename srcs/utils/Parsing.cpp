@@ -85,6 +85,8 @@ int checkCommand(std::string cmd) {
 		return (PING);
 	else if (cmd == "WHO")
 		return (WHO);
+	else if (cmd == "@BOT")
+		return (BOT);
 	else
 		return (INVAILDCMD);
 }

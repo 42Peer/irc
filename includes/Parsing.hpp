@@ -22,7 +22,8 @@ enum {
 	MODE,
 	WHOIS,
 	PING,
-	WHO
+	WHO,
+	BOT,
 };
 
 std::pair<int, std::vector<std::string> > parseData(std::string buf);

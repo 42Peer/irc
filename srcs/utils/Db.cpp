@@ -22,7 +22,7 @@ bool ChannelData::addData(struct s_user_info &user) {
 	return true;
 }
 
-bool ChannelData::isEmpty() const { return (_tables.empty()); }
+bool ChannelData::isEmpty() const { return (!_tables.empty()); }
 
 bool ChannelData::findUser(const std::string &key) {
 	std::map<std::string, int>::iterator iter = _tables.begin();
@@ -194,4 +194,12 @@ void Db::addChannelUser(struct s_user_info &usr,
 	}
 	user_table.addChannel(usr, channel_name);
 	getCorrectChannel(channel_name).addData(usr);
+}
+
+std::vector<std::string> Db::getChannelList(void){
+	std::vector<std::string> ret;
+	std::map<std::string, ChannelData>::iterator it = channel_tables.begin();
+	for(; it != channel_tables.end(); ++it)
+		ret.push_back(it->first);
+	return (ret);
 }
