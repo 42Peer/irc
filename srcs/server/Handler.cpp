@@ -5,11 +5,11 @@
 #include "Message.hpp"
 
 int findCrln(std::string &line) {
-    for (size_t i = 0; i < line.size(); ++i) {
-        if ((line[i] == '\r' && line[i + 1] == '\n') || line[i] == '\n')
-            return (i);
-    }
-    return (-1);
+	for (size_t i = 0; i < line.size(); ++i) {
+		if ((line[i] == '\r' && line[i + 1] == '\n') || line[i] == '\n')
+			return (i);
+	}
+	return (-1);
 }
 
 void printErrorMsg(const char *msg) {
@@ -45,9 +45,10 @@ void Handler::run(void) {
 
 		for (int i = 0; i < evt; ++i) {
 			if (_monitor[i].flags & EV_EOF) {
+				this->getServer().removeFdFlags(_monitor[i].ident);
 				close(_monitor[i].ident);
 			}
-            else if (_monitor[i].flags & EV_ERROR) {
+			else if (_monitor[i].flags & EV_ERROR) {
 				// std::cerr << "ENABLE\n";
 				if (_monitor[i].ident == _server.getServerSocket())
 					printErrorMsg("Server error");
@@ -61,33 +62,36 @@ void Handler::run(void) {
 					if (new_client == -1) {
 						continue;
 					}
-					send(this->getServer().getServerSocket(), "#new\n", 6, 0);
+					send(this->getServer().getServerSocket(), "#new\r\n", 7, 0);
 					setsockopt(new_client, SOL_SOCKET, SO_REUSEADDR, 0, 0);
 					if (fcntl(new_client, F_SETFL, O_NONBLOCK) == -1)
 						printErrorMsg("fcntl()");
 
 					wrapEvSet(_event_list, new_client, EVFILT_READ, EV_ADD | EV_ENABLE);
 					wrapEvSet(_event_list, new_client, EVFILT_WRITE, EV_ADD | EV_ENABLE);
-
-					_fd_flags[new_client] = 0;
+					this->getServer().setFdFlags(new_client);
 				}
-                else if (servReceive(_monitor[i].ident)) {
-                    int idx;
-                    while ((idx = findCrln(_msgMap[_monitor[i].ident].first)) != -1) {
-                        std::string test =_msgMap[_monitor[i].ident].first.substr(0, idx);
-                        std::cout << "recv data : " <<  test << "\n";
-                        std::pair<int, std::vector<std::string> > parsed_data = parseData(test);
-                        _msgMap[_monitor[i].ident].first.erase(0, idx + 2 - (_msgMap[_monitor[i].ident].first[i] == '\n'));
-                        figureCommand(_monitor[i].ident, parsed_data);
-                    }
+				else if (servReceive(_monitor[i].ident)) {
+					int idx;
+					while ((idx = findCrln(_msg_map[_monitor[i].ident].first)) != -1) {
+						std::string test =_msg_map[_monitor[i].ident].first.substr(0, idx);
+						std::cout << "recv data : " <<  test << "\n";
+						std::pair<int, std::vector<std::string> > parsed_data = parseData(test);
+						_msg_map[_monitor[i].ident].first.erase(0, idx + 2 - (_msg_map[_monitor[i].ident].first[i] == '\n'));
+						figureCommand(_monitor[i].ident, parsed_data);
+					}
 				}
-            } else if (_monitor[i].filter == EVFILT_WRITE) {
-                std::string fd_data = this->getServer().getFdMessage(_monitor[i].ident);
-                if (fd_data == "")
-                    continue ;
-                std::cout << fd_data << "\n";
-                send(_monitor[i].ident, fd_data.c_str(), fd_data.size(), 0);
-                this->getServer().getFdMessage(_monitor[i].ident).clear();
+			} else if (_monitor[i].filter == EVFILT_WRITE) {
+				std::string fd_data = this->getServer().getFdMessage(_monitor[i].ident);
+				if (fd_data == "")
+					continue ;
+				std::cout << fd_data << "\n";
+				send(_monitor[i].ident, fd_data.c_str(), fd_data.size(), 0);
+				this->getServer().getFdMessage(_monitor[i].ident).clear();
+				if (this->getServer().getFdFlagsStatus(_monitor[i].ident, 4) == true){
+					this->getServer().removeFdFlags(_monitor[i].ident);
+					close(_monitor[i].ident);
+				}
 			}
 		}
 	}
@@ -104,103 +108,71 @@ bool Handler::servReceive(int fd) {
 		return (false);
 	buf[buf_len] = '\0';
 
-	_msgMap[fd].first += std::string(buf);
+	_msg_map[fd].first += std::string(buf);
 
 	return (true);
 }
 
 void Handler::makeProtocol(int fd) {
 	size_t delimiter;
-	while ((delimiter = std::min(_msgMap[fd].first.find('\r'), _msgMap[fd].first.find('\n'))) != std::string::npos) {
-		std::string data = _msgMap[fd].first.substr(0, delimiter);
-		_msgMap[fd].first.erase(0, delimiter + 1);
-		_msgMap[fd].second = data;
-        if (data == "")
-            break ;
+	while ((delimiter = std::min(_msg_map[fd].first.find('\r'), _msg_map[fd].first.find('\n'))) != std::string::npos) {
+		std::string data = _msg_map[fd].first.substr(0, delimiter);
+		_msg_map[fd].first.erase(0, delimiter + 1);
+		_msg_map[fd].second = data;
+		if (data == "")
+			break ;
 		data.clear();
 	}
 }
 
 void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &data) {
-	if (_fd_flags.find(fd) != _fd_flags.end()) {
-		Command *cmd = NULL;
-		if (data.first == PASS) {
-			cmd = new Pass(*this);
-			cmd->run(fd, data.second);
-			delete cmd;
-		} else if (data.first == NICK && _fd_flags[fd] > 0) {
-			cmd = new Nick(*this);
-			cmd->run(fd, data.second);
-			delete cmd;
-		} else if (data.first == USER && _fd_flags[fd] > 1) {
-			cmd = new User(*this);
-			cmd->run(fd, data.second);
-			delete cmd;
-		} else if (data.first == CAP)
-			;
-		else
-		{
-			if (data.first == INVAILDCMD)
-				this->getServer().setFdMessage(fd, ERR421 + data.second[0] + "\n");
-			else if (data.first == WRONGARG)
-				this->getServer().setFdMessage(fd, ERR461);
-			else
-				this->getServer().setFdMessage(fd, ERR451);
-		}
-	} else {
-		Command *cmd = NULL;
-		switch (data.first) {
-		case JOIN:
+	Command *cmd = NULL;
+	int ctype = data.first;
+
+	if(this->getServer().getFdFlagsInitStatus(fd)) {
+		if (ctype == JOIN)
 			cmd = new Join(*this);
-			break;
-		case NICK:
+		else if (ctype == NICK)
 			cmd = new Nick(*this);
-			break;
-		case QUIT:
+		else if (ctype == QUIT)
 			cmd = new Quit(*this);
-			break;
-		case PRIVMSG:
+		else if (ctype == PRIVMSG)
 			cmd = new Privmsg(*this);
-			break;
-		case KICK:
+		else if (ctype == KICK)
 			cmd = new Kick(*this);
-			break;
-		case PART:
+		else if (ctype == PART)
 			cmd = new Part(*this);
-			break;
-		case NOTICE:
+		else if (ctype == NOTICE)
 			cmd = new Notice(*this);
-			break;
-		case USER:
+		else if (ctype == USER)
 			cmd = new User(*this);
-			break;
-		case PASS:
+		else if (ctype == PASS)
 			cmd = new Pass(*this);
-			break;
-		case PING:
+		else if (ctype == PING)
 			cmd = new Ping(*this);
-			break;
-		default:
-			{
-				if (data.first == WRONGARG)
-					this->getServer().setFdMessage(fd, ERR461);
-				else if (data.first == CAP)
-					return ;
-				else
-					this->getServer().setFdMessage(fd, ERR421 + data.second[0] + "\n");
-				return;
-			}
+	}else {
+		if (ctype == PASS) {
+			cmd = new Pass(*this);
+		} else if (ctype == NICK) {
+			cmd = new Nick(*this);
+		} else if (ctype == USER) {
+			cmd = new User(*this);
 		}
+	}
+	if (cmd != NULL){
 		cmd->run(fd, data.second);
 		delete cmd;
 	}
+	else{
+		if (ctype == WRONGARG)
+			this->getServer().setFdMessage(fd, ERR461);
+		else if (ctype == INVAILDCMD)
+			this->getServer().setFdMessage(fd, ERR421 + data.second[0] + "\n");
+		else if (ctype == MODE || ctype == WHOIS || ctype == CAP) 
+			return;
+		else if (this->getServer().getFdFlagsInitStatus(fd))
+			this->getServer().setFdMessage(fd, ERR451);
+	}
 }
-
-std::map<int, int> &Handler::getFdflags(void) { return (_fd_flags); }
 
 Server &Handler::getServer(void) { return (_server); }
-
-void Handler::setFdFlags(int fd, int flags) {
-	if (this->_fd_flags.find(fd) != _fd_flags.end())
-		_fd_flags[fd] = flags;
-}

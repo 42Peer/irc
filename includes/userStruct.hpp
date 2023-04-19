@@ -6,7 +6,6 @@
 
 struct s_user_info {
   int fd;
-  std::string pass;
   std::string nick;
   std::string name;
   std::string real;
