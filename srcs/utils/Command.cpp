@@ -434,7 +434,7 @@ void User::run(int fd, std::vector<std::string> args) {
 }
 
 void Pass::run(int fd, std::vector<std::string> args) {
-	if (this->_handler.getServer().getFdFlagsStatus(fd, 0)){
+	if (this->_handler.getServer().getFdFlagsInitStatus(fd)){
 		std::string name = this->_handler.getServer().getUserName(fd);
 		std::string buf = ":";
 		buf += SERVNAME;
