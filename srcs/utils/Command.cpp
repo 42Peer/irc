@@ -77,9 +77,40 @@ void Join::run(int fd, std::vector<std::string> args) {
 				}
 			}
 
-			buf = ":" + nick_name + " JOIN " + args[i] + "\n"
-					+ ":" + SERVNAME + "353 " + nick_name + " = " + args[i] + " :@" + king + "\n"
-					+ ":" + SERVNAME + "366 " + nick_name + " " + args[i] + " :End of /NAMES list.\r\n";
+			buf.append(":");
+			buf.append(nick_name);
+			buf.append(" JOIN ");
+			buf.append(args[i]);
+			buf.append("\r\n");
+
+			buf.append(":");
+			buf.append(SERVNAME);
+			buf.append("353 ");
+
+			buf.append(nick_name);
+			buf.append(" = ");
+			buf.append(args[i]);
+			buf.append(" :@");
+			buf.append(king);
+			std::vector<std::string> chan_user_list = _handler.getServer().g_db.getCorrectChannel(args[i]).getUserList();
+			for (unsigned long i = 0; i < chan_user_list.size(); i++)
+			{
+				if (chan_user_list[i] != king)
+				{
+					buf.append(" ");
+					buf.append(chan_user_list[i]);
+				}
+			}
+
+			buf.append("\r\n");
+
+			buf.append(":");
+			buf.append(SERVNAME);
+			buf.append("366 ");
+			buf.append(nick_name);
+			buf.append(" ");
+			buf.append(args[i]);
+			buf.append(" :End of /NAMES list.\r\n");
 
 			int receiver(0);
 			for (size_t j = 0; j < user_list.size(); ++j) {
@@ -98,10 +129,7 @@ void Nick::run(int fd, std::vector<std::string> args) {
 	std::string new_nick = args[0];
 	std::string current_nick(this->_handler.getServer().getUserName(fd));
 	if (current_nick == "")
-	{
-			std::cout << "new client tmp nick is *" << "\n";
 		current_nick = "*";
-	}
 
 	if (!isValidName(new_nick)) {
     // :irc.local 432 jujeon *juje :Erroneous Nickname
@@ -129,7 +157,6 @@ void Nick::run(int fd, std::vector<std::string> args) {
 		// 가입 전이면 새 client 구조체 할당
 		if (!this->_handler.getServer().getFdFlagsStatus(fd, 1))
 		{
-			std::cout << "new client info created" << "\n";
 			struct s_user_info new_client;
 			new_client.fd = fd;
 			new_client.nick = new_nick;
@@ -149,7 +176,9 @@ void Nick::run(int fd, std::vector<std::string> args) {
 
 		this->_handler.getServer().g_db.updateUser(old_user_info, new_user_info);
 
-		buf.append(":" + this->_handler.getServer().getUserName(fd) + " NICK " + new_nick + "\r\n");
+		buf.append(":");
+		buf.append(SERVNAME);
+		buf.append(this->_handler.getServer().getUserName(fd) + " NICK " + new_nick + "\r\n");
 		this->_handler.getServer().setFdMessage(fd, buf);
 	}
 
@@ -250,7 +279,8 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
 				}
 				std::vector<std::string> user_lists = chn.getUserList();
 				for (size_t j = 0; j < user_lists.size(); ++j) {
-					this->_handler.getServer().setFdMessage(
+					if (fd != user.getUser(user_lists[j]).fd)
+						this->_handler.getServer().setFdMessage(
 							user.getUser(user_lists[j]).fd, msg + args[i] + " :" + args.back() + "\r\n");
 				}
 				continue;

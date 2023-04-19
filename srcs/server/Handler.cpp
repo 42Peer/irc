@@ -179,7 +179,7 @@ void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &d
 			buf += ERR421 + name + " " + data.second[0] + MSG421;
 			this->getServer().setFdMessage(fd, buf);
 		}
-		else if (ctype == MODE || ctype == WHOIS || ctype == CAP)
+		else if (ctype == MODE || ctype == WHOIS || ctype == CAP || ctype == WHO)
 			return;
 		else if (this->getServer().getFdFlagsInitStatus(fd)) {
 			buf = ":";
