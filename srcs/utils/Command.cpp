@@ -149,7 +149,7 @@ void Nick::run(int fd, std::vector<std::string> args) {
 	}
 	this->_handler.getServer().setMapData(fd, new_nick);
 	if (this->_handler.getServer().checkGreetingMessage(fd)){
-		this->_handler.getServer().setFdMessage(fd, CODEGREET + new_nick +  MSGGREETING);
+		this->_handler.getServer().setFdMessage(fd, RPL001 + new_nick +  MSG001);
 		this->_handler.getServer().setFdFlagsOn(fd, 3);
 	}
 }
@@ -393,7 +393,7 @@ void Part::run(int fd, std::vector<std::string> args) {
 
 void User::run(int fd, std::vector<std::string> args) {
 	std::string name = this->_handler.getServer().getUserName(fd);
-	if (this->_handler.getFdflags().find(fd) == this->_handler.getFdflags().end()){
+	if (this->_handler.getServer().getFdFlagsStatus(fd, 2)){
 //		:irc.local 462 jujeon :You may not reregister
 		std::string buf = ":";
 		buf += SERVNAME;
@@ -413,7 +413,7 @@ void User::run(int fd, std::vector<std::string> args) {
 }
 
 void Pass::run(int fd, std::vector<std::string> args) {
-	if (this->_handler.getFdflags().find(fd) == this->_handler.getFdflags().end()){
+	if (this->_handler.getServer().getFdFlagsStatus(fd, 0)){
 //		:irc.local 462 jujeon :You may not reregister
 		std::string name = this->_handler.getServer().getUserName(fd);
 		std::string buf = ":";
