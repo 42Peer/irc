@@ -71,6 +71,11 @@ std::string& Server::getFdMessage(int fd)
 	return (_fd_message[fd]);
 }
 
+void	Server::removeFdMessage(int fd)
+{
+	_fd_message[fd].erase();
+}
+
 void Server::setFdFlags(int fd)
 {
 	/*
