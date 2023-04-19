@@ -399,7 +399,15 @@ void Part::run(int fd, std::vector<std::string> args) {
 				chn.removeData(name);
 				this->_handler.getServer().g_db.getUserTable().removeChannel(user_info, args[index]);
 				buf = "";
-				buf += ":" + name + " PART " + ":" + args[index] + "\r\n";
+				buf.append(":");
+				buf.append(name);
+				buf.append("!~");
+				buf.append(name);
+				buf.append("@");
+				buf.append(SERVNAME);
+				buf.append(" PART ");
+				buf.append(args[index]);
+				buf.append("\r\n");
 				_handler.getServer().setFdMessage(fd, buf);
 
 				std::vector<std::string> user_list = chn.getUserList();
@@ -444,6 +452,14 @@ void Pass::run(int fd, std::vector<std::string> args) {
 	else{
 		if (this->_handler.getServer().getServerPassword() == args[0])
 			this->_handler.getServer().setFdFlagsOn(fd, 0);
+		else if (this->_handler.getServer().getServerPassword() != args[0] && !this->_handler.getServer().getFdFlagsStatus(fd, 0))
+		{
+			std::string buf = ":";
+			buf += SERVNAME;
+			buf += ERR464;
+			buf += MSG464;
+			this->_handler.getServer().setFdMessage(fd, buf);
+		}
 	}
 }
 

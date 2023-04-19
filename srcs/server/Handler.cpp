@@ -40,10 +40,8 @@ void Handler::run(void) {
 		_event_list.clear();
 
 		for (int i = 0; i < evt; ++i) {
-			if (_monitor[i].flags & EV_EOF) {
-				this->getServer().removeFdFlags(_monitor[i].ident);
-				close(_monitor[i].ident);
-			}
+			if (_monitor[i].flags & EV_EOF)
+				this->signalQuit(_monitor[i].ident);
 			else if (_monitor[i].flags & EV_ERROR) {
 				// std::cerr << "ENABLE\n";
 				if (_monitor[i].ident == _server.getServerSocket())
@@ -112,21 +110,17 @@ std::string usr_name = this->getServer().getUserName(fd);
 	std::vector<std::string> chn_list = usr_name_info.channel_list;
 	for (size_t index = 0; index < chn_list.size(); ++index){
 		ChannelData& chn = this->getServer().g_db.getCorrectChannel(chn_list[index]);
-		if (chn.getUserList().size() == 0) {
-				this->getServer().setFdMessage(fd, ERR403);
-		} else {
-			struct s_user_info user_info = this->getServer().g_db.getUserTable().getUser(usr_name);
-			std::vector<std::string> channel_user = chn.getUserList();
-			chn.removeData(usr_name);
-			this->getServer().g_db.getUserTable().removeChannel(user_info, chn_list[index]);
-			std::string buf("");
-			buf += ":" + usr_name + " QUIT :Connection closed\r\n";
-			std::vector<std::string> user_list = chn.getUserList();
-			int receiver(0);
-			for (size_t j = 0; j < user_list.size(); ++j) {
-				receiver = this->getServer().g_db.getUserTable().getUser(user_list[j]).fd;
-				this->getServer().setFdMessage(receiver, buf);
-			}
+		struct s_user_info user_info = this->getServer().g_db.getUserTable().getUser(usr_name);
+		std::vector<std::string> channel_user = chn.getUserList();
+		chn.removeData(usr_name);
+		this->getServer().g_db.getUserTable().removeChannel(user_info, chn_list[index]);
+		std::string buf("");
+		buf += ":" + usr_name + " QUIT :Connection closed\r\n";
+		std::vector<std::string> user_list = chn.getUserList();
+		int receiver(0);
+		for (size_t j = 0; j < user_list.size(); ++j) {
+			receiver = this->getServer().g_db.getUserTable().getUser(user_list[j]).fd;
+			this->getServer().setFdMessage(receiver, buf);
 		}
 	}
 	this->getServer().g_db.removeUser(usr_name_info);

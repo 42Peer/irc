@@ -5,7 +5,6 @@
 #include "userStruct.hpp"
 #include "Db.hpp"
 
-// class Channel;
 class Server {
 	public:
 		Server(int, std::string);

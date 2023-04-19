@@ -15,6 +15,7 @@
 #define ERR451 "451 "
 #define ERR461 "461 "
 #define ERR462 "462 "
+#define ERR464 "464 "
 #define ERR476 "476 "
 #define ERR482 "482 "
 #define MSG001 " :Welcome to IRC server\r\n"
@@ -31,6 +32,7 @@
 #define MSG451 " :You have not registered\r\n"
 #define MSG461 " :Not enough parameters\r\n"
 #define MSG462 " :You may not reregister\r\n"
+#define MSG464 " :Password incorrect\r\n"
 #define MSG476 " :Invalid channel name\r\n"
 #define MSG482 " :You're not channel operator\r\n"
 
