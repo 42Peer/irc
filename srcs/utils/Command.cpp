@@ -112,8 +112,9 @@ void Join::run(int fd, std::vector<std::string> args) {
 
 
 void Nick::run(int fd, std::vector<std::string> args) {
+	if (!this->_handler.getServer().getFdFlagsStatus(fd, 0))
+		return ;
 	std::string buf("");
-	std::string my_name = this->_handler.getServer().getUserName(fd);
 	std::string new_nick = args[0];
 	std::string current_nick(this->_handler.getServer().getUserName(fd));
 	if (current_nick == "")
@@ -136,36 +137,32 @@ void Nick::run(int fd, std::vector<std::string> args) {
 		return;
 	} 
 
-	s_user_info old_user_info = this->_handler.getServer().g_db.getUserTable().getUser(current_nick);
-	if (this->_handler.getServer().getFdFlagsStatus(fd, 0))
+	struct s_user_info old_user_info = this->_handler.getServer().g_db.getUserTable().getUser(current_nick);
+	if (!this->_handler.getServer().getFdFlagsStatus(fd, 1))
 	{
-		if (!this->_handler.getServer().getFdFlagsStatus(fd, 1))
-		{
-			struct s_user_info new_client;
-			new_client.fd = fd;
-			new_client.nick = new_nick;
-			new_client.real_name = "*";
-			new_client.usr_name = "*";
-			this->_handler.getServer().g_db.getUserTable().addUser(new_client);
-			old_user_info = this->_handler.getServer().g_db.getUserTable().getUser(new_nick);
-			this->_handler.getServer().setFdFlagsOn(fd, 1);
-		}
-
-		struct s_user_info new_user_info;
-		new_user_info.nick = new_nick;
-		new_user_info.usr_name = old_user_info.usr_name;
-		new_user_info.real_name = old_user_info.real_name;
-		new_user_info.host_name = old_user_info.host_name;
-		new_user_info.server_name = old_user_info.server_name;
-		new_user_info.fd = old_user_info.fd;
-		new_user_info.channel_list = old_user_info.channel_list;
-
-		this->_handler.getServer().g_db.updateUser(old_user_info, new_user_info);
-
-		buf.append(":");
-		buf.append(current_nick + " NICK " + new_nick + "\r\n");
-		this->_handler.getServer().setFdMessage(fd, buf);
+		struct s_user_info new_client;
+		new_client.fd = fd;
+		new_client.nick = new_nick;
+		new_client.real_name = "*";
+		new_client.usr_name = "*";
+		this->_handler.getServer().g_db.getUserTable().addUser(new_client);
+		old_user_info = this->_handler.getServer().g_db.getUserTable().getUser(new_nick);
+		this->_handler.getServer().setFdFlagsOn(fd, 1);
 	}
+	struct s_user_info new_user_info;
+	new_user_info.nick = new_nick;
+	new_user_info.usr_name = old_user_info.usr_name;
+	new_user_info.real_name = old_user_info.real_name;
+	new_user_info.host_name = old_user_info.host_name;
+	new_user_info.server_name = old_user_info.server_name;
+	new_user_info.fd = old_user_info.fd;
+	new_user_info.channel_list = old_user_info.channel_list;
+
+	this->_handler.getServer().g_db.updateUser(old_user_info, new_user_info);
+
+	buf.append(":");
+	buf.append(current_nick + " NICK " + new_nick + "\r\n");
+	this->_handler.getServer().setFdMessage(fd, buf);
 
 	this->_handler.getServer().setMapData(fd, new_nick);
 	if (this->_handler.getServer().checkGreetingMessage(fd)){
@@ -424,16 +421,18 @@ void Part::run(int fd, std::vector<std::string> args) {
 }
 
 void User::run(int fd, std::vector<std::string> args) {
-	std::string name = this->_handler.getServer().getUserName(fd);
-	if (this->_handler.getServer().getFdFlagsStatus(fd, 2)){
+	if (this->_handler.getServer().getFdFlagsInitStatus(fd)){
+		std::string name = this->_handler.getServer().getUserName(fd);
 		std::string buf = ":";
 		buf += SERVNAME;
 		buf += ERR462 + name + MSG462;
 		this->_handler.getServer().setFdMessage(fd, buf);
 		return ;
 	}
-	struct s_user_info info =
-			this->_handler.getServer().g_db.getUserTable().getUser(name);
+	else if (!this->_handler.getServer().getFdFlagsStatus(fd, 0))
+		return ;
+	std::string name = this->_handler.getServer().getUserName(fd);
+	struct s_user_info info = this->_handler.getServer().g_db.getUserTable().getUser(name);
 	info.usr_name = args[0];
 	info.host_name = args[1];
 	info.server_name = args[2];
