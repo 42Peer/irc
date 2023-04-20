@@ -402,7 +402,7 @@ void Part::run(int fd, std::vector<std::string> args) {
 				buf.append("!~");
 				buf.append(user_info.usr_name);
 				buf.append("@");
-				buf.append(SERVNAME);
+				buf.append(user_info.server_name);
 				buf.append(" PART ");
 				buf.append(args[index]);
 				buf.append("\r\n");
