@@ -9,7 +9,6 @@ public:
 	Command(Handler & h) : _handler(h){};
 	virtual ~Command() {};
 	virtual void run(int, std::vector<std::string>) = 0;
-	// Handler& getHandler(void);
 
 protected:
 	Handler &_handler;
@@ -96,8 +95,6 @@ public:
 	Bot(Handler &h) : Command(h){};
 	~Bot(){};
 	void run(int, std::vector<std::string>);
-private:
-
 };
 
 #endif /* __COMMAND_HPP_ */

@@ -82,8 +82,8 @@ void Server::setFdFlags(int fd)
 		0 - check PASS
 		1 - check NICK
 		2 - check USER
-		3 - check AllInitStatus
-		3 - check PART
+		3 - check AllInitStatus(Greeting Msg)
+		4 - check PART
 	*/
 	std::vector<bool> temp;
 	temp.push_back(false);

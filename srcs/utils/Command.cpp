@@ -187,7 +187,6 @@ bool Nick::isValidName(const std::string& name) {
 
 
 void Quit::run(int fd, std::vector<std::string> args) {
-	(void) args;
 	std::string usr_name = this->_handler.getServer().getUserName(fd);
 	struct s_user_info usr_name_info = this->_handler.getServer().g_db.getUserTable().getUser(usr_name);
 	std::vector<std::string> chn_list = usr_name_info.channel_list;
