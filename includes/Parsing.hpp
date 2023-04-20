@@ -14,7 +14,7 @@ enum {
 	NICK, /* arg : 1    nickname */
 	QUIT, /* arg : 0,1  [reason] */
 	PRIVMSG, /* arg : 2   "ch or user" :msg delimeter : ',' */
-	KICK, /* arg : 2,3  channelname username [reason] */
+	KICK, /* arg : 2,3  channelname[,<channelname>] username[,<username>] [reason] */
 	PART, /* arg : 1      delimeter : ',' channel */
 	PASS, /* arg : 1 password */
 	USER, /* arg : 4 username hostname servername realname */

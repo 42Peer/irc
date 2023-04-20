@@ -183,7 +183,7 @@ void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &d
 		}
 		else if (ctype == MODE || ctype == WHOIS || ctype == CAP || ctype == WHO)
 			return;
-		else if (this->getServer().getFdFlagsInitStatus(fd)) {
+		else if (!this->getServer().getFdFlagsInitStatus(fd)) {
 			buf = ":";
 			buf += SERVNAME;
 			buf += ERR451 + name + MSG451;
