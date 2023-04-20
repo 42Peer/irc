@@ -28,12 +28,18 @@ class Server {
 		bool	getFdFlagsStatus(int, int);
 		bool	checkGreetingMessage(int);
 		void	removeFdFlags(int);
+
+		void	setFdTempInfo(int, struct s_user_info&);
+		bool	findFdTempInfo(int);
+		void	removeFdTempInfo(int);
+		std::string	getFdTempInfo(int, int);
 		Db	g_db;
 
 	private:
 		std::map<int, std::string> _fd_name_map;
 		std::map<int, std::string> _fd_message;
 		std::map<int, std::vector<bool> > _fd_flags;
+		std::map<int, struct s_user_info> _fd_temp_info;
 
 		std::string _password;
 		int _server_socket;

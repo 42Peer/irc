@@ -176,8 +176,8 @@ void Db::removeUser(struct s_user_info &user) {
 }
 
 bool Db::updateUser(struct s_user_info &org, struct s_user_info &usr) {
-	if (user_table.isExist(usr.nick))
-		return false;
+	// if (user_table.isExist(usr.nick))
+	// 	return false;
 	user_table.updateUser(org, usr);
 	iter it = channel_tables.begin();
 	while (it != channel_tables.end()) {
