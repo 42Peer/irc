@@ -17,6 +17,7 @@ bool isArgv(const char *argv) {
 }
 
 int main(int argc, char **argv) {
+	srand((unsigned int)time(NULL));
 	if (argc != 3) {
 		return (1);
 	}
