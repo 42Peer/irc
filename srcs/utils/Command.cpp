@@ -520,7 +520,40 @@ void Bot::run(int fd, std::vector<std::string> args){
 			buf.append("-" + temp[i] + "\n");
 		buf.append("===end of list===\r\n");
 		this->_handler.getServer().setFdMessage(fd, buf);
-	}else {
+	} else if (args.size() == 3 && args[0] == "list"){
+		if ((args[1][0] != '#' && args[1][0] != '&') || args[1].find(0x07) != std::string::npos) {
+			buf = ":";
+			buf += SERVNAME;
+			buf += ERR476 + this->_handler.getServer().getUserName(fd) + " " + args[1] + MSG476;
+			this->_handler.getServer().setFdMessage(fd, buf);
+			return;
+		} else if (this->_handler.getServer().g_db.getCorrectChannel(args[1]).getUserList().size() == 0){
+			buf = ":";
+			buf += SERVNAME;
+			buf += ERR403 + this->_handler.getServer().getUserName(fd) + " " + args[1] + MSG403;
+			_handler.getServer().setFdMessage(fd, buf);
+			return;
+		} else if (args[2] != "random") {
+			buf = ":";
+			buf += SERVNAME;
+			buf += ERR421 + this->_handler.getServer().getUserName(fd) + " " + args[1] + MSG421;
+			_handler.getServer().setFdMessage(fd, buf);
+			return;
+		} 
+		std::vector<std::string> temp = this->_handler.getServer().g_db.getCorrectChannel(args[1]).getUserList();
+		if (temp.size() <= 0) {
+			buf = ":";
+			buf += SERVNAME;
+			buf += "there is no user\r\n";
+			_handler.getServer().setFdMessage(fd, buf);
+			return ;
+		}
+		int random = rand() % temp.size();
+		buf.append("===random user===\r\n");
+		buf.append("random User [" + temp[random] + "]\n");
+		this->_handler.getServer().setFdMessage(fd, buf);
+	} 
+	else {
 		buf.append("Error :type @BOT help\r\n");
 		this->_handler.getServer().setFdMessage(fd, buf);
 	}
