@@ -65,7 +65,7 @@ void Handler::run(void) {
 					while ((idx = findCrln(_msg_map[_monitor[i].ident].first)) != -1) {
 						std::string test =_msg_map[_monitor[i].ident].first.substr(0, idx);
 						std::pair<int, std::vector<std::string> > parsed_data = parseData(test);
-						_msg_map[_monitor[i].ident].first.erase(0, idx + 2 - (_msg_map[_monitor[i].ident].first[i] == '\n'));
+						_msg_map[_monitor[i].ident].first.erase(0, idx + 2 - (_msg_map[_monitor[i].ident].first[idx] == '\n'));
 						figureCommand(_monitor[i].ident, parsed_data);
 					}
 				}
