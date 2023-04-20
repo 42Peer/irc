@@ -122,3 +122,36 @@ void	Server::removeFdFlags(int fd)
 {
 	_fd_flags.erase(fd);
 }
+
+void	Server::setFdTempInfo(int fd, struct s_user_info& info_)
+{
+	_fd_temp_info[fd] = info_;
+}
+
+bool	Server::findFdTempInfo(int fd)
+{
+	if (_fd_temp_info.find(fd) == _fd_temp_info.end())
+		return (false);
+	return (true);
+}
+
+void	Server::removeFdTempInfo(int fd)
+{
+	if (_fd_temp_info.find(fd) == _fd_temp_info.end())
+		return ;
+	_fd_temp_info.erase(fd);
+}
+
+std::string	Server::getFdTempInfo(int fd, int flag)
+{
+	std::string ret("");
+	if (flag == 1)
+		ret = _fd_temp_info[fd].real_name;
+	else if (flag == 2)
+		ret = _fd_temp_info[fd].usr_name;
+	else if (flag == 3)
+		ret = _fd_temp_info[fd].server_name;
+	else if (flag == 4)
+		ret = _fd_temp_info[fd].host_name;
+	return (ret);
+}
