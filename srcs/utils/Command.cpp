@@ -398,9 +398,9 @@ void Part::run(int fd, std::vector<std::string> args) {
 				this->_handler.getServer().g_db.getUserTable().removeChannel(user_info, args[index]);
 				buf = "";
 				buf.append(":");
-				buf.append(name);
+				buf.append(user_info.nick);
 				buf.append("!~");
-				buf.append(name);
+				buf.append(user_info.usr_name);
 				buf.append("@");
 				buf.append(SERVNAME);
 				buf.append(" PART ");
