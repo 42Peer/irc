@@ -12,7 +12,6 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string>
-#include <sys/_types/_socklen_t.h>
 #include <sys/event.h>
 #include <sys/fcntl.h>
 #include <sys/socket.h>

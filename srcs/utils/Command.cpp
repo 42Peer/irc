@@ -15,7 +15,12 @@ bool existInVector(std::vector<std::string> &vec, std::string value) {
 void Notice::run(int fd, std::vector<std::string> args) {
 	std::string buf("");
 	std::string my_name = this->_handler.getServer().getUserName(fd);
-	if (args.front()[0] == '#') {
+	if (args.back() == ""){
+		buf.append(":");
+		buf.append(SERVNAME);
+		buf.append(ERR412 + my_name + MSG412);
+		this->_handler.getServer().setFdMessage(fd, buf);
+	} else if (args.front()[0] == '#') {
 		buf.append(":");
 		buf.append(SERVNAME);
 		buf.append(ERR404 + my_name + " " + args[0] + MSG404);
@@ -64,17 +69,14 @@ void Join::run(int fd, std::vector<std::string> args) {
 					break ;
 				}
 			}
-
 			buf.append(":");
 			buf.append(nick_name);
 			buf.append(" JOIN ");
 			buf.append(args[i]);
 			buf.append("\r\n");
-
 			buf.append(":");
 			buf.append(SERVNAME);
 			buf.append("353 ");
-
 			buf.append(nick_name);
 			buf.append(" = ");
 			buf.append(args[i]);
@@ -89,9 +91,7 @@ void Join::run(int fd, std::vector<std::string> args) {
 					buf.append(chan_user_list[i]);
 				}
 			}
-
 			buf.append("\r\n");
-
 			buf.append(":");
 			buf.append(SERVNAME);
 			buf.append("366 ");
@@ -99,7 +99,6 @@ void Join::run(int fd, std::vector<std::string> args) {
 			buf.append(" ");
 			buf.append(args[i]);
 			buf.append(" :End of /NAMES list.\r\n");
-
 			int receiver(0);
 			for (size_t j = 0; j < user_list.size(); ++j) {
 				receiver = this->_handler.getServer().g_db.getUserTable().getUser(user_list[j]).fd;
@@ -259,6 +258,14 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
 	std::string msg;
 	std::string buf;
 	std::string my_name = this->_handler.getServer().getUserName(fd);
+	if (args.back() == "")
+	{
+		buf = ":";
+		buf += SERVNAME;
+		buf += ERR412 + my_name + MSG412;
+		this->_handler.getServer().setFdMessage(fd, buf);
+		return ;
+	}
 	msg = ":" + my_name + " PRIVMSG ";
 	for (size_t i = 0; i < args.size() - 1; ++i) {
 		if (!user.isExist(args[i])) {
@@ -320,25 +327,25 @@ void Kick::run(int fd, std::vector<std::string> args)
 		if ((channels[i][0] != '#' && channels[i][0] != '&') || channels[i].find(0x07) != std::string::npos){
 			buf = ":";
 			buf += SERVNAME;
-			buf += ERR476 + name + " " + args[i] + MSG476;
+			buf += ERR476 + name + " " + channels[i] + MSG476;
 			this->_handler.getServer().setFdMessage(fd, buf);
 			continue;
 		}else if (channel_data.getUserList().size() == 0){
 			buf = ":";
 			buf += SERVNAME;
-			buf += ERR403 + name + " " + args[i] + MSG403;
+			buf += ERR403 + name + " " + channels[i] + MSG403;
 			this->_handler.getServer().setFdMessage(fd, buf);
 			continue; 
 		}else if (!channel_data.findUser(name)){
 			buf = ":";
 			buf += SERVNAME;
-			buf += ERR442 + name + " " + args[i] + MSG442;
+			buf += ERR442 + name + " " + channels[i] + MSG442;
 			this->_handler.getServer().setFdMessage(fd, buf);
 			continue;
 		}else if (channel_data.getPrivileges(name) != 0){
 			buf = ":";
 			buf += SERVNAME;
-			buf += ERR482 + name + " " + args[i] + MSG482;
+			buf += ERR482 + name + " " + channels[i] + MSG482;
 			this->_handler.getServer().setFdMessage(fd, buf);
 			continue;
 		}
@@ -346,7 +353,7 @@ void Kick::run(int fd, std::vector<std::string> args)
 			if (!channel_data.findUser(targets[j])){
 				buf = ":";
 				buf += SERVNAME;
-				buf += ERR441 + name + " " + args[i] + MSG441;
+				buf += ERR441 + name + " " + targets[j] + MSG441;
 				this->_handler.getServer().setFdMessage(fd, buf);
 				continue;
 			}
@@ -503,18 +510,18 @@ void Ping::run(int fd, std::vector<std::string> args) {
 void Bot::run(int fd, std::vector<std::string> args){
 	std::string buf("");
 	if (args.size() == 1 && args[0] == "help"){
-		buf.append("I am Channel helper\n");
-		buf.append("type \"@BOT list\" to get channel list\n");
-		buf.append("type \"@BOT list <channel name>\" to get User list in Channel\n");
+		buf.append("I am Channel helper\r\n");
+		buf.append("type \"@BOT list\" to get channel list\r\n");
+		buf.append("type \"@BOT list <channel name>\" to get User list in Channel\r\n");
 		buf.append("type \"@BOT list <channel name> random\" to get random User in Channel\r\n");
 		this->_handler.getServer().setFdMessage(fd, buf);
 		return ;
 	}else if (args.size() == 1 && args[0] == "list"){
 		std::vector<std::string> list = this->_handler.getServer().g_db.getChannelList();
-		buf.append("===Current Channel List===\n");
+		buf.append("===Current Channel List===\r\n");
 		for (size_t i = 0; i < list.size(); ++i){
 			if (this->_handler.getServer().g_db.getCorrectChannel(list[i]).getUserList().size() != 0)
-				buf.append("-" + list[i] + "\n");
+				buf.append("-" + list[i] + "\r\n");
 		}
 		buf.append("===end of list===\r\n");
 		this->_handler.getServer().setFdMessage(fd, buf);
@@ -535,7 +542,7 @@ void Bot::run(int fd, std::vector<std::string> args){
 		buf.append("Active User List in [" + args[1] + "]\n");
 		std::vector<std::string> temp = this->_handler.getServer().g_db.getCorrectChannel(args[1]).getUserList();
 		for(size_t i = 0; i < temp.size(); ++i)
-			buf.append("-" + temp[i] + "\n");
+			buf.append("-" + temp[i] + "\r\n");
 		buf.append("===end of list===\r\n");
 		this->_handler.getServer().setFdMessage(fd, buf);
 	} else if (args.size() == 3 && args[0] == "list"){
