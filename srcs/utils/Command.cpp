@@ -354,7 +354,7 @@ void Kick::run(int fd, std::vector<std::string> args)
 			if (message == "")
 				buf.append(":" + name + " KICK : " + channels[i] + " " + targets[j] + " :" + name + "\r\n");
 			else
-				buf.append(":" + name + "KICK : " + channels[i] + " " + targets[j] + " :" + message + "\r\n");
+				buf.append(":" + name + " KICK : " + channels[i] + " " + targets[j] + " :" + message + "\r\n");
 			this->_handler.getServer().setFdMessage(fd, buf);
 			this->_handler.getServer().setFdMessage(this->_handler.getServer().g_db.getUserTable().getUser(targets[j]).fd, buf);	
 			target_info = this->_handler.getServer().g_db.getUserTable().getUser(targets[j]);
