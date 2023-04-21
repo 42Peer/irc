@@ -40,7 +40,7 @@ void Join::run(int fd, std::vector<std::string> args) {
 	std::string buf("");
 
 	for (size_t i = 0; i < args.size(); ++i) {
-		if ((args[i][0] != '#' && args[i][0] != '&') || args[i].find(0x07) != std::string::npos) {
+		if ((args[i][0] != '#' && args[i][0] != '&') || args[i].find(0x07) != std::string::npos || (args[i] == "#" || args[i] == "&")) {
 			buf = ":";
 			buf += SERVNAME;
 			buf += ERR476 + nick_name + " " + args[i] + MSG476;
@@ -505,7 +505,8 @@ void Bot::run(int fd, std::vector<std::string> args){
 	if (args.size() == 1 && args[0] == "help"){
 		buf.append("I am Channel helper\n");
 		buf.append("type \"@BOT list\" to get channel list\n");
-		buf.append("type \"@BOT list <channel name>\" to get User list in Channel\r\n");
+		buf.append("type \"@BOT list <channel name>\" to get User list in Channel\n");
+		buf.append("type \"@BOT list <channel name> random\" to get random User in Channel\r\n");
 		this->_handler.getServer().setFdMessage(fd, buf);
 		return ;
 	}else if (args.size() == 1 && args[0] == "list"){
@@ -567,7 +568,7 @@ void Bot::run(int fd, std::vector<std::string> args){
 		}
 		int random = rand() % temp.size();
 		buf.append("===random user===\r\n");
-		buf.append("random User [" + temp[random] + "]\n");
+		buf.append("random User [" + temp[random] + "]\r\n");
 		this->_handler.getServer().setFdMessage(fd, buf);
 	} 
 	else {
