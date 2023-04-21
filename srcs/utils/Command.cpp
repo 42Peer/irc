@@ -300,7 +300,7 @@ void Privmsg::run(int fd, std::vector<std::string> args) {
 			continue;
 		}
 		struct s_user_info cur_user = user.getUser(args[i]);
-		this->_handler.getServer().setFdMessage(cur_user.fd, msg + cur_user.nick + " :" + args.back() + ";\r\n");
+		this->_handler.getServer().setFdMessage(cur_user.fd, msg + cur_user.nick + " :" + args.back() + "\r\n");
 	}
 }
 
