@@ -45,7 +45,6 @@ void Handler::run(void) {
 			else if (_monitor[i].flags & EV_ERROR) {
 				if (_monitor[i].ident == _server.getServerSocket())
 					exit(1);
-				else ;
 			} else if (_monitor[i].filter == EVFILT_READ) {
 				if (_monitor[i].ident == _server.getServerSocket()) {
 					socklen_t sock_len = sizeof(sockaddr_in);
@@ -54,8 +53,10 @@ void Handler::run(void) {
 						continue;
 					}
 					setsockopt(new_client, SOL_SOCKET, SO_REUSEADDR, 0, 0);
-					if (fcntl(new_client, F_SETFL, O_NONBLOCK) == -1)
-						exit(1);
+					if (fcntl(new_client, F_SETFL, O_NONBLOCK) == -1){
+						close(new_client);
+						continue;
+					}
 					wrapEvSet(_event_list, new_client, EVFILT_READ, EV_ADD | EV_ENABLE);
 					wrapEvSet(_event_list, new_client, EVFILT_WRITE, EV_ADD | EV_ENABLE);
 					this->getServer().setFdFlags(new_client);
@@ -73,7 +74,7 @@ void Handler::run(void) {
 				std::string fd_data = this->getServer().getFdMessage(_monitor[i].ident);
 				if (fd_data == "")
 					continue ;
-				send(_monitor[i].ident, fd_data.c_str(), fd_data.size(), 0);	
+				send(_monitor[i].ident, fd_data.c_str(), fd_data.size(), 0);
 				this->getServer().getFdMessage(_monitor[i].ident).clear();
 				if (this->getServer().getFdFlagsStatus(_monitor[i].ident, 4) == true){
 					this->getServer().removeFdFlags(_monitor[i].ident);
@@ -86,15 +87,14 @@ void Handler::run(void) {
 
 bool Handler::servReceive(int fd) {
 	std::string ret;
-	char buf[1024];
+	char buf[1025];
 	int buf_len;
 
 	memset(buf, 0, sizeof(buf));
 	buf_len = recv(fd, (void *)buf, 1024, MSG_DONTWAIT);
-	if (buf_len == 0 || buf[0] == '\n')
+	if (buf_len == 0)
 		return (false);
 	buf[buf_len] = '\0';
-
 	_msg_map[fd].first += std::string(buf);
 	return (true);
 }
@@ -127,6 +127,8 @@ std::string usr_name = this->getServer().getUserName(fd);
 }
 
 void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &data) {
+	if (data.first == -4)
+		return ;
 	Command *cmd = NULL;
 	int ctype = data.first;
 	std::string buf("");
@@ -134,34 +136,34 @@ void Handler::figureCommand(int fd, std::pair<int, std::vector<std::string> > &d
 
 	if(this->getServer().getFdFlagsInitStatus(fd)) {
 		if (ctype == JOIN)
-			cmd = new Join(*this);
+			cmd = new (std::nothrow)Join(*this);
 		else if (ctype == NICK)
-			cmd = new Nick(*this);
+			cmd = new (std::nothrow)Nick(*this);
 		else if (ctype == QUIT)
-			cmd = new Quit(*this);
+			cmd = new (std::nothrow)Quit(*this);
 		else if (ctype == PRIVMSG)
-			cmd = new Privmsg(*this);
+			cmd = new (std::nothrow)Privmsg(*this);
 		else if (ctype == KICK)
-			cmd = new Kick(*this);
+			cmd = new (std::nothrow)Kick(*this);
 		else if (ctype == PART)
-			cmd = new Part(*this);
+			cmd = new (std::nothrow)Part(*this);
 		else if (ctype == NOTICE)
-			cmd = new Notice(*this);
+			cmd = new (std::nothrow)Notice(*this);
 		else if (ctype == USER)
-			cmd = new User(*this);
+			cmd = new (std::nothrow)User(*this);
 		else if (ctype == PASS)
-			cmd = new Pass(*this);
+			cmd = new (std::nothrow)Pass(*this);
 		else if (ctype == PING)
-			cmd = new Ping(*this);
+			cmd = new (std::nothrow)Ping(*this);
 		else if (ctype == BOT)
-			cmd = new Bot(*this);
+			cmd = new (std::nothrow)Bot(*this);
 	}else {
 		if (ctype == PASS) {
-			cmd = new Pass(*this);
+			cmd = new (std::nothrow)Pass(*this);
 		} else if (ctype == NICK) {
-			cmd = new Nick(*this);
+			cmd = new (std::nothrow)Nick(*this);
 		} else if (ctype == USER) {
-			cmd = new User(*this);
+			cmd = new (std::nothrow)User(*this);
 		}
 	}
 	if (cmd != NULL){
