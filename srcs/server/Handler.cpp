@@ -32,7 +32,9 @@ Handler::~Handler() {}
 void Handler::run(void) {
 	std::map<int, std::string> tmp_data;
 
-	int evt;
+	int evt(0);
+	size_t send_size(0);
+	char trash[1024];
 	while (true) {
 		evt = kevent(_kq, &_event_list[0], _event_list.size(), _monitor, 8, NULL);
 		if (evt == -1)
@@ -48,6 +50,7 @@ void Handler::run(void) {
 			} else if (_monitor[i].filter == EVFILT_READ) {
 				if (_monitor[i].ident == _server.getServerSocket()) {
 					socklen_t sock_len = sizeof(sockaddr_in);
+					recv(_monitor[i].ident, (void *)trash, 1024, MSG_DONTWAIT);
 					int new_client = accept(_server.getServerSocket(), (struct sockaddr *)(&_server.getServerAddr()), &sock_len);
 					if (new_client == -1) {
 						continue;
@@ -74,8 +77,9 @@ void Handler::run(void) {
 				std::string fd_data = this->getServer().getFdMessage(_monitor[i].ident);
 				if (fd_data == "")
 					continue ;
-				send(_monitor[i].ident, fd_data.c_str(), fd_data.size(), 0);
-				this->getServer().getFdMessage(_monitor[i].ident).clear();
+				send_size = send(_monitor[i].ident, fd_data.c_str(), fd_data.size(), 0);
+				this->getServer().updateFdMessage(_monitor[i].ident, send_size);
+				// this->getServer().getFdMessage(_monitor[i].ident).clear();
 				if (this->getServer().getFdFlagsStatus(_monitor[i].ident, 4) == true){
 					this->getServer().removeFdFlags(_monitor[i].ident);
 					close(_monitor[i].ident);
