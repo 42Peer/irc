@@ -94,12 +94,15 @@ int checkCommand(std::string cmd) {
 std::pair<int, std::vector<std::string> > parseData(std::string buf) {
 	std::vector<std::string> ret_vector;
 	std::pair<int, std::vector<std::string> > ret;
-	int cmd_type(0);
-
+	int cmd_type(0), i(0);
 	std::string cmd, data;
 	std::istringstream stream;
-	int i(0);
 
+	if (buf == "\0")
+	{
+		ret = std::pair<int, std::vector<std::string> > (-4, ret_vector);
+		return (ret);
+	}
 	stream.str(buf);
 	std::getline(stream, cmd, ' ');
 	cmd_type = checkCommand(cmd);
