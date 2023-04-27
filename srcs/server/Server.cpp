@@ -74,12 +74,12 @@ std::string& Server::getFdMessage(int fd)
 void	Server::updateFdMessage(int fd, size_t size)
 {
 	std::string temp("");
-	if (getFdMessage(fd).size() != size){
-		temp = getFdMessage(fd).substr(size);
-		getFdMessage(fd).clear();
-		setFdMessage(fd, temp);
+	if (_fd_message[fd].size() != size){
+		temp = _fd_message[fd].substr(size);
+		_fd_message[fd].clear();
+		_fd_message[fd] = temp;
 	} else
-		getFdMessage(fd).clear(); 
+		_fd_message[fd].clear();
 }
 
 void	Server::removeFdMessage(int fd)

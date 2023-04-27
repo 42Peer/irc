@@ -34,7 +34,6 @@ void Handler::run(void) {
 
 	int evt(0);
 	size_t send_size(0);
-	char trash[1024];
 	while (true) {
 		evt = kevent(_kq, &_event_list[0], _event_list.size(), _monitor, 8, NULL);
 		if (evt == -1)
@@ -50,11 +49,11 @@ void Handler::run(void) {
 			} else if (_monitor[i].filter == EVFILT_READ) {
 				if (_monitor[i].ident == _server.getServerSocket()) {
 					socklen_t sock_len = sizeof(sockaddr_in);
-					recv(_monitor[i].ident, (void *)trash, 1024, MSG_DONTWAIT);
 					int new_client = accept(_server.getServerSocket(), (struct sockaddr *)(&_server.getServerAddr()), &sock_len);
 					if (new_client == -1) {
 						continue;
 					}
+					_msg_map[new_client].clear();
 					setsockopt(new_client, SOL_SOCKET, SO_REUSEADDR, 0, 0);
 					if (fcntl(new_client, F_SETFL, O_NONBLOCK) == -1){
 						close(new_client);
@@ -66,10 +65,10 @@ void Handler::run(void) {
 				}
 				else if (servReceive(_monitor[i].ident)) {
 					int idx = 0;
-					while ((idx = findCrln(_msg_map[_monitor[i].ident].first)) != -1) {
-						std::string test =_msg_map[_monitor[i].ident].first.substr(0, idx);
+					while ((idx = findCrln(_msg_map[_monitor[i].ident])) != -1) {
+						std::string test =_msg_map[_monitor[i].ident].substr(0, idx);
 						std::pair<int, std::vector<std::string> > parsed_data = parseData(test);
-						_msg_map[_monitor[i].ident].first.erase(0, idx + 2 - (_msg_map[_monitor[i].ident].first[idx] == '\n'));
+						_msg_map[_monitor[i].ident].erase(0, idx + 2 - (_msg_map[_monitor[i].ident][idx] == '\n'));
 						figureCommand(_monitor[i].ident, parsed_data);
 					}
 				}
@@ -99,7 +98,7 @@ bool Handler::servReceive(int fd) {
 	if (buf_len == 0)
 		return (false);
 	buf[buf_len] = '\0';
-	_msg_map[fd].first += std::string(buf);
+	_msg_map[fd] += std::string(buf);
 	return (true);
 }
 
@@ -112,8 +111,7 @@ std::string usr_name = this->getServer().getUserName(fd);
 		ChannelData& chn = this->getServer().g_db.getCorrectChannel(chn_list[index]);
 		struct s_user_info user_info = this->getServer().g_db.getUserTable().getUser(usr_name);
 		std::vector<std::string> channel_user = chn.getUserList();
-		chn.removeData(usr_name);
-		this->getServer().g_db.getUserTable().removeChannel(user_info, chn_list[index]);
+		this->getServer().g_db.removeChannel(user_info, chn_list[index]);
 		std::string buf("");
 		buf += ":" + usr_name + " QUIT :Connection closed\r\n";
 		std::vector<std::string> user_list = chn.getUserList();

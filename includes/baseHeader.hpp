@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <iostream>
 #include <map>
+#include <new>
 #include <memory.h>
 #include <signal.h>
 #include <stdlib.h>

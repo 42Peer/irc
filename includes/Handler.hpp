@@ -14,7 +14,7 @@ private:
 	int _kq;
 	std::vector<struct kevent> _event_list;
 	struct kevent _monitor[8];
-	std::map<int, std::pair<std::string, std::string> > _msg_map;
+	std::map<int, std::string > _msg_map;
 	Server& _server;
 
 	void figureCommand(int, std::pair<int, std::vector<std::string> >&);
