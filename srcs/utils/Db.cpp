@@ -41,8 +41,10 @@ void ChannelData::removeData(const std::string &nick) {
 }
 
 std::vector<std::string> ChannelData::getUserList() {
+    std::vector<std::string> userList;
+    if (_tables.empty())
+        return userList;
 	std::map<std::string, int>::iterator it = _tables.begin();
-	std::vector<std::string> userList;
 	for (; it != _tables.end(); ++it)
 		userList.push_back(it->first);
 	return userList;
@@ -95,8 +97,7 @@ void UserData::addChannel(struct s_user_info &usr, const std::string &channel_na
 }
 
 void UserData::removeChannel(struct s_user_info &usr, const std::string &channel_name) {
-	std::vector<std::string>::iterator viter =
-			_tables[usr.nick].channel_list.begin();
+	std::vector<std::string>::iterator viter = _tables[usr.nick].channel_list.begin();
 
 	for (; viter != _tables[usr.nick].channel_list.end(); ++viter) {
 		if (*viter == channel_name) {
@@ -163,7 +164,7 @@ void Db::removeUser(struct s_user_info &user) {
 	while (it != channel_tables.end()) {
 		iter tmp = it;
 		channel_tables[it->first].removeData(user.nick);
-		if (!channel_tables[it->first].isEmpty()) {
+		if (channel_tables[it->first].isEmpty()) {
 			++it;
 			channel_tables.erase(tmp);
 			if (it == channel_tables.end())

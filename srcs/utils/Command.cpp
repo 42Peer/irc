@@ -202,28 +202,21 @@ void Quit::run(int fd, std::vector<std::string> args) {
 	std::vector<std::string> chn_list = usr_name_info.channel_list;
 	for (size_t index = 0; index < chn_list.size(); ++index){
 		ChannelData& chn = this->_handler.getServer().g_db.getCorrectChannel(chn_list[index]);
-		if (chn.getUserList().size() == 0) {
-				_handler.getServer().setFdMessage(fd, ERR403);
-		} else {
-			struct s_user_info user_info = this->_handler.getServer().g_db.getUserTable().getUser(usr_name);
-			std::vector<std::string> channel_user = chn.getUserList();
-			
-			chn.removeData(usr_name);
-			this->_handler.getServer().g_db.getUserTable().removeChannel(user_info, chn_list[index]);
-			std::string buf("");
-			if (args.size() == 0)
-				buf += ":" + usr_name + " QUIT :Client exited\r\n";
-			else
-				buf += ":" + usr_name + " QUIT :Quit: " + args[0] + "\r\n";
-	
-			std::vector<std::string> user_list = chn.getUserList();
-			int receiver = 0;
-			for (size_t j = 0; j < user_list.size(); ++j) {
-				receiver = this->_handler.getServer().g_db.getUserTable().getUser(user_list[j]).fd;
-				this->_handler.getServer().setFdMessage(receiver, buf);
-			}
+		struct s_user_info user_info = this->_handler.getServer().g_db.getUserTable().getUser(usr_name);
+		std::vector<std::string> channel_user = chn.getUserList();
+		this->_handler.getServer().g_db.removeChannel(user_info, chn_list[index]);
+		std::string buf("");
+		if (args.size() == 0)
+			buf += ":" + usr_name + " QUIT :Client exited\r\n";
+		else
+			buf += ":" + usr_name + " QUIT :Quit: " + args[0] + "\r\n";	
+		std::vector<std::string> user_list = chn.getUserList();
+		int receiver = 0;
+		for (size_t j = 0; j < user_list.size(); ++j) {
+			receiver = this->_handler.getServer().g_db.getUserTable().getUser(user_list[j]).fd;
+			this->_handler.getServer().setFdMessage(receiver, buf);
 		}
-	}
+	 }
 	std::string buf("");
 	if (!args.empty())
 		buf = "ERROR :Closing link: [QUIT:" + args[0] + "]\r\n";
