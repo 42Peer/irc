@@ -104,13 +104,11 @@ bool Handler::servReceive(int fd) {
 
 void Handler::signalQuit(int fd){
 std::string usr_name = this->getServer().getUserName(fd);
-	struct s_user_info usr_name_info =
-			this->getServer().g_db.getUserTable().getUser(usr_name);
+	struct s_user_info usr_name_info = this->getServer().g_db.getUserTable().getUser(usr_name);
 	std::vector<std::string> chn_list = usr_name_info.channel_list;
 	for (size_t index = 0; index < chn_list.size(); ++index){
 		ChannelData& chn = this->getServer().g_db.getCorrectChannel(chn_list[index]);
 		struct s_user_info user_info = this->getServer().g_db.getUserTable().getUser(usr_name);
-		std::vector<std::string> channel_user = chn.getUserList();
 		this->getServer().g_db.removeChannel(user_info, chn_list[index]);
 		std::string buf("");
 		buf += ":" + usr_name + " QUIT :Connection closed\r\n";

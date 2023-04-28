@@ -45,6 +45,7 @@ void Join::run(int fd, std::vector<std::string> args) {
 	std::string buf("");
 
 	for (size_t i = 0; i < args.size(); ++i) {
+		buf.clear();
 		if ((args[i][0] != '#' && args[i][0] != '&') || args[i].find(0x07) != std::string::npos || (args[i] == "#" || args[i] == "&")) {
 			buf = ":";
 			buf += SERVNAME;
@@ -203,7 +204,6 @@ void Quit::run(int fd, std::vector<std::string> args) {
 	for (size_t index = 0; index < chn_list.size(); ++index){
 		ChannelData& chn = this->_handler.getServer().g_db.getCorrectChannel(chn_list[index]);
 		struct s_user_info user_info = this->_handler.getServer().g_db.getUserTable().getUser(usr_name);
-		std::vector<std::string> channel_user = chn.getUserList();
 		this->_handler.getServer().g_db.removeChannel(user_info, chn_list[index]);
 		std::string buf("");
 		if (args.size() == 0)
@@ -217,12 +217,12 @@ void Quit::run(int fd, std::vector<std::string> args) {
 			this->_handler.getServer().setFdMessage(receiver, buf);
 		}
 	 }
-	std::string buf("");
+	std::string buf1("");
 	if (!args.empty())
-		buf = "ERROR :Closing link: [QUIT:" + args[0] + "]\r\n";
+		buf1 = "ERROR :Closing link: [QUIT:" + args[0] + "]\r\n";
 	else
-		buf = "ERROR :Closing link: [QUIT: Client exited]\r\n";
-	this->_handler.getServer().setFdMessage(fd, buf);
+		buf1 = "ERROR :Closing link: [QUIT: Client exited]\r\n";
+	this->_handler.getServer().setFdMessage(fd, buf1);
 	this->_handler.getServer().g_db.removeUser(usr_name_info);
 	this->_handler.getServer().removeMapData(fd);
 	this->_handler.getServer().setFdFlagsOn(fd, 4);
@@ -352,9 +352,9 @@ void Kick::run(int fd, std::vector<std::string> args)
 			}
 			buf = "";
 			if (message == "")
-				buf.append(":" + name + " KICK : " + channels[i] + " " + targets[j] + " :" + name + "\r\n");
+				buf.append(":" + name + " KICK " + channels[i] + " " + targets[j] + " :" + name + "\r\n");
 			else
-				buf.append(":" + name + " KICK : " + channels[i] + " " + targets[j] + " :" + message + "\r\n");
+				buf.append(":" + name + " KICK " + channels[i] + " " + targets[j] + " :" + message + "\r\n");
 			this->_handler.getServer().setFdMessage(fd, buf);
 			this->_handler.getServer().setFdMessage(this->_handler.getServer().g_db.getUserTable().getUser(targets[j]).fd, buf);	
 			target_info = this->_handler.getServer().g_db.getUserTable().getUser(targets[j]);
@@ -382,7 +382,7 @@ std::vector<std::string> Kick::splitByComma(std::string args){
 
 void Part::run(int fd, std::vector<std::string> args) {
 	std::string name = this->_handler.getServer().getUserName(fd);
-	std::string buf;
+	std::string buf("");
 	for (size_t index = 0; index < args.size(); ++index){
 		ChannelData& chn = this->_handler.getServer().g_db.getCorrectChannel(args[index]);
 		if (chn.getUserList().size() == 0) {
