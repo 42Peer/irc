@@ -41,9 +41,9 @@ void ChannelData::removeData(const std::string &nick) {
 }
 
 std::vector<std::string> ChannelData::getUserList() {
-    std::vector<std::string> userList;
-    if (_tables.empty())
-        return userList;
+	std::vector<std::string> userList;
+	if (_tables.empty())
+		return userList;
 	std::map<std::string, int>::iterator it = _tables.begin();
 	for (; it != _tables.end(); ++it)
 		userList.push_back(it->first);
@@ -191,8 +191,7 @@ bool Db::updateUser(struct s_user_info &org, struct s_user_info &usr) {
 	return true;
 }
 
-void Db::addChannelUser(struct s_user_info &usr,
-					const std::string &channel_name) {
+void Db::addChannelUser(struct s_user_info &usr, const std::string &channel_name) {
 	if (!user_table.isExist(usr.nick)) {
 		user_table.addUser(usr);
 	}
@@ -202,6 +201,8 @@ void Db::addChannelUser(struct s_user_info &usr,
 
 std::vector<std::string> Db::getChannelList(void){
 	std::vector<std::string> ret;
+	if (channel_tables.empty())
+		return (ret);
 	std::map<std::string, ChannelData>::iterator it = channel_tables.begin();
 	for(; it != channel_tables.end(); ++it)
 		ret.push_back(it->first);
